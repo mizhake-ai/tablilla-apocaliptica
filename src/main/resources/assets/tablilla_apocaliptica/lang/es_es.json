@@ -1,0 +1,12 @@
+{
+  "item.tablilla_apocaliptica.tablilla_apocaliptica": "Tablilla Apocaliptica",
+  "itemGroup.tablilla_apocaliptica": "Tablilla Apocaliptica",
+  "msg.tablilla.given": "Tienes la Tablilla Apocaliptica.",
+  "msg.tablilla.charging": "Invocando... %s%%",
+  "msg.tablilla.no_target": "SIN OBJETIVO EN RANGO",
+  "msg.tablilla.fired": "Ataque invocado",
+  "msg.tablilla.busy": "Ya hay un ataque en curso. Usa /tablilla stop para detenerlo.",
+  "msg.tablilla.stopped": "Ataque detenido.",
+  "msg.tablilla.terrain_on": "Dano al terreno: ACTIVADO",
+  "msg.tablilla.terrain_off": "Dano al terreno: DESACTIVADO (solo luz y sonido)"
+}

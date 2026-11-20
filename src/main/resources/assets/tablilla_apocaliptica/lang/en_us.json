@@ -1,0 +1,12 @@
+{
+  "item.tablilla_apocaliptica.tablilla_apocaliptica": "Apocalyptic Tablet",
+  "itemGroup.tablilla_apocaliptica": "Apocalyptic Tablet",
+  "msg.tablilla.given": "You have the Apocalyptic Tablet.",
+  "msg.tablilla.charging": "Invoking... %s%%",
+  "msg.tablilla.no_target": "NO TARGET IN RANGE",
+  "msg.tablilla.fired": "Strike called",
+  "msg.tablilla.busy": "A strike is already under way. Use /tablilla stop to end it.",
+  "msg.tablilla.stopped": "Strike stopped.",
+  "msg.tablilla.terrain_on": "Terrain damage: ON",
+  "msg.tablilla.terrain_off": "Terrain damage: OFF (light and sound only)"
+}
