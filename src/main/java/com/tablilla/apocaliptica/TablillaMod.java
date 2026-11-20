@@ -4,7 +4,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.javafml.FMLJavaModLoadingContext;
+import net.minecraftforge.fmlmod.javafml.FMLJavaModLoadingContext;
 
 @Mod(TablillaMod.MOD_ID)
 public class TablillaMod {
