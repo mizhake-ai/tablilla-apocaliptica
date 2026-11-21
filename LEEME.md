@@ -1,28 +1,21 @@
-# Tablilla Apocaliptica - Etapa 1 (version 0.1.0)
+# Tablilla Apocaliptica - Etapa 2 (version 0.2.0)
 
 ## Novedades
-- Tecla **R** (con la tablilla en la mano): menu de piedra con runas ambar y borde purpura.
-- Primer ataque real: **Lanza de Ra** (Plasma). Los demas aparecen bloqueados ("proximamente").
-- Receta de crafteo (mesa de crafteo 3x3):
-      Oro   Obsidiana  Oro
-      Diam. Ojo Ender  Diam.      (Oro = bloque de oro, Diam. = bloque de diamante)
-      Oro   Obsidiana  Oro
-  Alternativa: cambiar los 2 bloques de diamante por 2 lingotes de netherita.
-- La tablilla en primera persona es 20% mas chica y esta mas de lado.
-- Idiomas: espanol (y variantes), ingles y portugues. Minecraft usa el idioma del juego (Opciones > Idioma).
-- Boton "Aa/Ra" arriba a la derecha del menu: cambia entre letra runica y letra normal.
+- Ahora hay 5 ataques: Lanza de Ra (Plasma, rehecho), Juicio Divino (Godly), El Abismo (Black Hole),
+  Lluvia de Estrellas (Meteor Storm) y La Barca Celeste (Mothership).
+- Efectos nuevos: rayos solidos y brillantes, anillos de luz, ondas expansivas, destellos, temblor de camara,
+  cielo teñido y los sonidos del mod original.
+- Destruccion MUCHO mayor (crateres de 50 a 85 bloques de radio, onda de fuego de 120).
+- El dano al terreno ahora viene ACTIVADO por defecto.
 
-## COMO ACTUALIZAR (importante)
-1. Descomprime este zip.
-2. En tu repositorio de GitHub: Add file > Upload files, y arrastra TODO el contenido de la carpeta.
-   Los archivos que ya existen se reemplazan solos. Pulsa "Commit changes".
-3. Espera la palomita verde en Actions y descarga el nuevo artifact.
-4. En la carpeta mods **BORRA el .jar viejo** (0.0.1) y pon el nuevo (0.1.0). No dejes los dos.
+## Comandos utiles
+- `/tablilla scale <0.25 a 2.5>` - multiplica el tamano de TODO (1 = normal, 2 = el doble de grande).
+  Si algo te causa lag, baja la escala (por ejemplo `/tablilla scale 0.6`).
+- `/tablilla terrain on|off` - activa o apaga la destruccion.
+- `/tablilla stop` - cancela el ataque (y los efectos visuales).
 
-## Uso
-- `/tablilla give` - te da la tablilla (o crafteala).
-- R - abre el menu. Clic en un ataque lo carga. Clic derecho o rueda del raton: cambia de pagina.
-- Clic derecho mantenido ~1 segundo apuntando a un bloque: cae el ataque.
-- `/tablilla terrain on` o el boton "Terreno" del menu: activa el dano al terreno (crater fundido y dano a seres vivos).
-  Apagado = solo luz, particulas y sonido.
-- `/tablilla stop` o el boton "Detener": cancela el ataque.
+## COMO ACTUALIZAR (2 partes, por el limite de archivos de GitHub)
+1. Sube **parte 1** (el codigo): Add file > Upload files, arrastra TODO el contenido de la carpeta. Commit.
+2. Sube **parte 2** (los sonidos): igual, arrastra el contenido del otro zip. Commit.
+3. Espera la palomita verde en Actions, descarga el artifact.
+4. En tu carpeta mods **borra el .jar viejo (0.1.0)** y pon el nuevo (0.2.0).

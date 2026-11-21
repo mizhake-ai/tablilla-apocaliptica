@@ -9,10 +9,10 @@ import net.minecraft.server.level.ServerLevel;
 /** Todos los ataques de la tablilla. Los que tienen ready=false salen en el menu como "proximamente". */
 public enum Laser {
     PLASMA("plasma", true),
-    GODLY("godly", false),
-    BLACKHOLE("blackhole", false),
-    METEOR("meteor", false),
-    MOTHERSHIP("mothership", false),
+    GODLY("godly", true),
+    BLACKHOLE("blackhole", true),
+    METEOR("meteor", true),
+    MOTHERSHIP("mothership", true),
     DOWNFALL("downfall", false),
     PLANETKILLER("planetkiller", false),
     CRYSTALBLOOM("crystalbloom", false),
@@ -71,6 +71,14 @@ public enum Laser {
         switch (this) {
             case PLASMA:
                 return new PlasmaStrike(level, pos);
+            case GODLY:
+                return new GodlyStrike(level, pos);
+            case BLACKHOLE:
+                return new BlackHoleStrike(level, pos);
+            case METEOR:
+                return new MeteorStrike(level, pos);
+            case MOTHERSHIP:
+                return new MothershipStrike(level, pos);
             default:
                 return null;
         }

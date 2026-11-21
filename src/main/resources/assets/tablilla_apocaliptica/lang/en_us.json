@@ -47,5 +47,10 @@
   "laser.tablilla_apocaliptica.earthquake": "The Great Quake",
   "laser.tablilla_apocaliptica.sixstars": "Six Stars",
   "laser.tablilla_apocaliptica.colossi": "The Colossi",
-  "laser.tablilla_apocaliptica.plasma.desc": "A plasma beam descends from the sky with forking lightning and fuses the crater into obsidian, magma and glass."
+  "laser.tablilla_apocaliptica.plasma.desc": "A plasma beam descends from the sky with forking lightning and fuses the crater into obsidian, magma and glass.",
+  "msg.tablilla.scale": "Destruction scale: %s",
+  "laser.tablilla_apocaliptica.godly.desc": "A golden pillar of light with rising halos falls from the sky and turns the crater into gold and quartz.",
+  "laser.tablilla_apocaliptica.blackhole.desc": "A sphere of darkness with an accretion disk devours the terrain and drags everything in, until it collapses.",
+  "laser.tablilla_apocaliptica.meteor.desc": "Dozens of flaming meteors fall over the area and open craters of magma and obsidian.",
+  "laser.tablilla_apocaliptica.mothership.desc": "A colossal ship darkens the sky, charges its cannon and wipes everything out with a beam and a wave of fire."
 }

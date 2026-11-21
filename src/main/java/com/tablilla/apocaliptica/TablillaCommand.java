@@ -1,6 +1,7 @@
 package com.tablilla.apocaliptica;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
@@ -21,6 +22,9 @@ public final class TablillaCommand {
                         .then(Commands.argument("laser", StringArgumentType.word())
                                 .suggests((ctx, builder) -> SharedSuggestionProvider.suggest(Laser.readyIds(), builder))
                                 .executes(ctx -> select(ctx.getSource(), StringArgumentType.getString(ctx, "laser")))))
+                .then(Commands.literal("scale")
+                        .then(Commands.argument("value", FloatArgumentType.floatArg(0.25F, 2.5F))
+                                .executes(ctx -> scale(ctx.getSource(), FloatArgumentType.getFloat(ctx, "value")))))
                 .then(Commands.literal("terrain")
                         .then(Commands.literal("on").executes(ctx -> terrain(ctx.getSource(), true)))
                         .then(Commands.literal("off").executes(ctx -> terrain(ctx.getSource(), false)))));
@@ -58,6 +62,12 @@ public final class TablillaCommand {
     private static int stop(CommandSourceStack src) {
         StrikeManager.stop();
         src.sendSuccess(() -> Component.translatable("msg.tablilla.stopped"), false);
+        return 1;
+    }
+
+    private static int scale(CommandSourceStack src, float value) {
+        StrikeManager.scale = value;
+        src.sendSuccess(() -> Component.translatable("msg.tablilla.scale", String.valueOf(value)), false);
         return 1;
     }
 

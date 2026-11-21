@@ -1,0 +1,402 @@
+{
+ "plasma.charge": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:charge",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "plasma.lockon": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:lockon",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "plasma.fire": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:fire",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "plasma.beam": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:beam",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "plasma.rumble": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:rumble",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "plasma.crackle": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:crackle",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "plasma.collapse": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:collapse",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "plasma.shutdown": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:shutdown",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "godly.lockon": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:godly/lockon",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "godly.charge": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:godly/charge",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "godly.fire": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:godly/fire",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "godly.beam": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:godly/beam",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "godly.rumble": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:godly/rumble",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "godly.accent": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:godly/accent",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "godly.shutdown": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:godly/shutdown",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "blackhole.lockon": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:blackhole/lockon",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "blackhole.charge": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:blackhole/charge",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "blackhole.fire": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:blackhole/fire",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "blackhole.beam": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:blackhole/beam",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "blackhole.rumble": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:blackhole/rumble",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "blackhole.accent": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:blackhole/accent",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "blackhole.shutdown": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:blackhole/shutdown",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "meteor.lockon": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:meteor/lockon",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "meteor.charge": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:meteor/charge",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "meteor.fire": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:meteor/fire",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "meteor.storm": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:meteor/storm",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "meteor.rumble": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:meteor/rumble",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "meteor.whoosh1": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:meteor/whoosh1",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "meteor.whoosh2": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:meteor/whoosh2",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "meteor.hit1": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:meteor/hit1",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "meteor.hit2": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:meteor/hit2",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "meteor.hit3": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:meteor/hit3",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "meteor.hit_far1": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:meteor/hit_far1",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "meteor.hit_far2": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:meteor/hit_far2",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "meteor.hit_far3": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:meteor/hit_far3",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "meteor.approach": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:meteor/approach",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "meteor.impact": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:meteor/impact",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "meteor.shutdown": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:meteor/shutdown",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "mothership.arrival": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:mothership/arrival",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "mothership.boom": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:mothership/boom",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "mothership.hum": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:mothership/hum",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "mothership.charge": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:mothership/charge",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "mothership.fire": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:mothership/fire",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "mothership.beam1": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:mothership/beam1",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "mothership.beam2": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:mothership/beam2",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "mothership.sweep1": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:mothership/sweep1",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "mothership.sweep2": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:mothership/sweep2",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "mothership.rumble": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:mothership/rumble",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "mothership.cutoff": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:mothership/cutoff",
+    "attenuation_distance": 256
+   }
+  ]
+ },
+ "mothership.depart": {
+  "sounds": [
+   {
+    "name": "tablilla_apocaliptica:mothership/depart",
+    "attenuation_distance": 256
+   }
+  ]
+ }
+}

@@ -47,5 +47,10 @@
   "laser.tablilla_apocaliptica.earthquake": "El Gran Temblor",
   "laser.tablilla_apocaliptica.sixstars": "Seis Estrellas",
   "laser.tablilla_apocaliptica.colossi": "Los Colosos",
-  "laser.tablilla_apocaliptica.plasma.desc": "Un rayo de plasma desciende del cielo con relámpagos ramificados y funde el cráter en obsidiana, magma y vidrio."
+  "laser.tablilla_apocaliptica.plasma.desc": "Un rayo de plasma desciende del cielo con relámpagos ramificados y funde el cráter en obsidiana, magma y vidrio.",
+  "msg.tablilla.scale": "Escala de destrucción: %s",
+  "laser.tablilla_apocaliptica.godly.desc": "Una columna de luz dorada con halos ascendentes cae del cielo y transforma el cráter en oro y cuarzo.",
+  "laser.tablilla_apocaliptica.blackhole.desc": "Una esfera de oscuridad con disco de acreción devora el terreno y arrastra todo hacia ella, hasta colapsar.",
+  "laser.tablilla_apocaliptica.meteor.desc": "Decenas de meteoros en llamas caen sobre la zona y abren cráteres de magma y obsidiana.",
+  "laser.tablilla_apocaliptica.mothership.desc": "Una nave colosal oscurece el cielo, carga su cañón y arrasa todo con un rayo y una onda de fuego."
 }
