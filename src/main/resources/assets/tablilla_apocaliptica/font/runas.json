@@ -1,0 +1,26 @@
+{
+ "providers": [
+  {
+   "type": "bitmap",
+   "file": "tablilla_apocaliptica:font/runas.png",
+   "ascent": 10,
+   "height": 11,
+   "chars": [
+    "ABCDEFGHIJKLMNOP",
+    "QRSTUVWXYZ012345",
+    "6789\u00c1\u00c0\u00c2\u00c3\u00c9\u00ca\u00cd\u00d3\u00d4\u00d5\u00da\u00c7",
+    "\u00d1\u00dc.,:!?-%+/\u0000\u0000\u0000\u0000\u0000"
+   ]
+  },
+  {
+   "type": "space",
+   "advances": {
+    " ": 5
+   }
+  },
+  {
+   "type": "reference",
+   "id": "minecraft:include/default"
+  }
+ ]
+}
