@@ -12,6 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
@@ -29,6 +30,7 @@ import org.joml.Matrix4f;
 public final class ClientFx {
     private static final List<Active> ACTIVE = new ArrayList<>();
     private static final RandomSource RNG = RandomSource.create();
+    private static boolean hullBroken = false;
 
     private static final class Active {
         final FxEffect fx;
@@ -54,6 +56,7 @@ public final class ClientFx {
     public static void handle(FxPacket p) {
         if (p.laser < 0) {
             ACTIVE.clear();
+            Debris.clear();
             return;
         }
         Laser[] all = Laser.values();
@@ -69,8 +72,8 @@ public final class ClientFx {
                 return new PlasmaFx();
             case GODLY:
                 return new GodlyFx();
-            case BLACKHOLE:
-                return new BlackHoleFx();
+            case DOWNFALL:
+                return new DownfallFx();
             case METEOR:
                 return new MeteorFx(p.seed, p.scale);
             case MOTHERSHIP:
@@ -96,9 +99,12 @@ public final class ClientFx {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null) {
             ACTIVE.clear();
+            Debris.clear();
             return;
         }
         if (mc.isPaused()) return;
+        // primero se mueven los bloques ya lanzados, luego los efectos crean los nuevos
+        Debris.tick(mc.level);
         Iterator<Active> it = ACTIVE.iterator();
         while (it.hasNext()) {
             Active a = it.next();
@@ -110,28 +116,67 @@ public final class ClientFx {
 
     @SubscribeEvent
     public static void onRender(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES || ACTIVE.isEmpty()) return;
+        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
+        if (ACTIVE.isEmpty() && !Debris.any()) return;
         Minecraft mc = Minecraft.getInstance();
         PoseStack ps = event.getPoseStack();
         Vec3 cam = event.getCamera().getPosition();
         float pt = event.getPartialTick();
         MultiBufferSource.BufferSource buf = mc.renderBuffers().bufferSource();
 
+        // 1) geometria solida con texturas de bloques (nave, agujero negro)
+        if (!hullBroken) {
+            try {
+                boolean any = false;
+                for (Active a : ACTIVE) {
+                    if (a.fx.usesHull()) any = true;
+                }
+                if (any) {
+                    RenderType rt = RenderType.entitySolid(TextureAtlas.LOCATION_BLOCKS);
+                    VertexConsumer hull = buf.getBuffer(rt);
+                    for (Active a : ACTIVE) {
+                        if (!a.fx.usesHull()) continue;
+                        ps.pushPose();
+                        ps.translate(a.x - cam.x, a.y - cam.y, a.z - cam.z);
+                        FxCtx.camX = cam.x - a.x;
+                        FxCtx.camY = cam.y - a.y;
+                        FxCtx.camZ = cam.z - a.z;
+                        a.fx.renderHull(hull, ps.last(), a.t + pt, a.seed, a.scale);
+                        ps.popPose();
+                    }
+                    buf.endBatch(rt);
+                }
+            } catch (Throwable e) {
+                hullBroken = true;
+            }
+        }
+
+        // 2) bloques y arboles voladores
+        Debris.render(ps, cam, pt, buf);
+
+        // 3) geometria oscura simple (sombras)
         VertexConsumer solid = buf.getBuffer(RenderType.gui());
         for (Active a : ACTIVE) {
             ps.pushPose();
             ps.translate(a.x - cam.x, a.y - cam.y, a.z - cam.z);
             Matrix4f m = ps.last().pose();
+            FxCtx.camX = cam.x - a.x;
+            FxCtx.camY = cam.y - a.y;
+            FxCtx.camZ = cam.z - a.z;
             a.fx.renderSolid(solid, m, a.t + pt, a.seed, a.scale);
             ps.popPose();
         }
         buf.endBatch(RenderType.gui());
 
+        // 4) luz
         VertexConsumer glow = buf.getBuffer(RenderType.lightning());
         for (Active a : ACTIVE) {
             ps.pushPose();
             ps.translate(a.x - cam.x, a.y - cam.y, a.z - cam.z);
             Matrix4f m = ps.last().pose();
+            FxCtx.camX = cam.x - a.x;
+            FxCtx.camY = cam.y - a.y;
+            FxCtx.camZ = cam.z - a.z;
             a.fx.renderGlow(glow, m, a.t + pt, a.seed, a.scale);
             ps.popPose();
         }
@@ -184,6 +229,50 @@ public final class ClientFx {
                 int al = (int) (Mth.clamp(k, 0.0F, 1.0F) * 255.0F);
                 if (al > 0) g.fill(0, 0, w, h, (al << 24) | 0xFFFFFF);
             }
+        }
+        for (Active a : ACTIVE) {
+            float fl = a.fx.flare(a.t);
+            if (fl > 0.01F) drawFlare(g, mc, a, w, h, fl);
+        }
+    }
+
+    /** Destello de lente: una linea horizontal de luz que cruza la pantalla a la altura del punto brillante. */
+    private static void drawFlare(GuiGraphics g, Minecraft mc, Active a, int w, int h, float k) {
+        double dx = a.x - mc.player.getX();
+        double dy = a.y + a.fx.flareHeight() - mc.player.getEyeY();
+        double dz = a.z - mc.player.getZ();
+        double horiz = Math.sqrt(dx * dx + dz * dz);
+        double dist = Math.sqrt(horiz * horiz + dy * dy);
+        if (dist < 2.0) return;
+        double tYaw = Math.toDegrees(Math.atan2(-dx, dz));
+        double tPitch = -Math.toDegrees(Math.atan2(dy, Math.max(horiz, 0.001)));
+        double yd = Mth.wrapDegrees(tYaw - mc.player.getYRot());
+        double pd = tPitch - mc.player.getXRot();
+        if (Math.abs(yd) > 80.0 || Math.abs(pd) > 80.0) return;
+        double fov = Math.max(30.0, mc.options.fov().get());
+        double px = (h / 2.0) / Math.tan(Math.toRadians(fov / 2.0));
+        int fx = (int) (w / 2.0 + Math.tan(Math.toRadians(yd)) * px);
+        int fy = (int) (h / 2.0 + Math.tan(Math.toRadians(pd)) * px);
+        float fade = near(a, mc, 700.0F * a.scale);
+        k *= 0.35F + 0.65F * fade;
+        int rgb = a.fx.flareColor() & 0xFFFFFF;
+
+        int segs = 48;
+        for (int i = 0; i < segs; i++) {
+            int x0 = i * w / segs;
+            int x1 = (i + 1) * w / segs;
+            double xm = (x0 + x1) * 0.5;
+            double fall = Math.max(0.0, 1.0 - Math.abs(xm - fx) / (w * 0.65));
+            float al = k * (float) (0.18 + 0.82 * fall);
+            int aGlow = (int) (Mth.clamp(al * 0.30F, 0.0F, 1.0F) * 255.0F);
+            int aCore = (int) (Mth.clamp(al * 0.95F, 0.0F, 1.0F) * 255.0F);
+            if (aGlow > 0) g.fill(x0, fy - 4, x1, fy + 4, (aGlow << 24) | rgb);
+            if (aCore > 0) g.fill(x0, fy - 1, x1, fy + 1, (aCore << 24) | 0xFFFFFF);
+        }
+        for (int n = 1; n <= 6; n++) {
+            int size = n * 6;
+            int al = (int) (Mth.clamp(k * 0.55F / n, 0.0F, 1.0F) * 255.0F);
+            if (al > 0) g.fill(fx - size, fy - size / 2, fx + size, fy + size / 2, (al << 24) | rgb);
         }
     }
 }

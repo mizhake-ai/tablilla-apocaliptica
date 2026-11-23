@@ -1,21 +1,20 @@
-# Tablilla Apocaliptica - Etapa 2 (version 0.2.0)
+# Tablilla Apocaliptica 0.3.0 (solo los 5 primeros eventos)
 
-## Novedades
-- Ahora hay 5 ataques: Lanza de Ra (Plasma, rehecho), Juicio Divino (Godly), El Abismo (Black Hole),
-  Lluvia de Estrellas (Meteor Storm) y La Barca Celeste (Mothership).
-- Efectos nuevos: rayos solidos y brillantes, anillos de luz, ondas expansivas, destellos, temblor de camara,
-  cielo teñido y los sonidos del mod original.
-- Destruccion MUCHO mayor (crateres de 50 a 85 bloques de radio, onda de fuego de 120).
-- El dano al terreno ahora viene ACTIVADO por defecto.
+Eventos incluidos: Lanza de Ra (Plasma), Juicio Divino (Godly), Lluvia de Estrellas (Meteor Storm),
+La Barca Celeste (Mothership) y La Caida (Downfall).
 
-## Comandos utiles
-- `/tablilla scale <0.25 a 2.5>` - multiplica el tamano de TODO (1 = normal, 2 = el doble de grande).
-  Si algo te causa lag, baja la escala (por ejemplo `/tablilla scale 0.6`).
-- `/tablilla terrain on|off` - activa o apaga la destruccion.
-- `/tablilla stop` - cancela el ataque (y los efectos visuales).
-
-## COMO ACTUALIZAR (2 partes, por el limite de archivos de GitHub)
-1. Sube **parte 1** (el codigo): Add file > Upload files, arrastra TODO el contenido de la carpeta. Commit.
-2. Sube **parte 2** (los sonidos): igual, arrastra el contenido del otro zip. Commit.
-3. Espera la palomita verde en Actions, descarga el artifact.
-4. En tu carpeta mods **borra el .jar viejo (0.1.0)** y pon el nuevo (0.2.0).
+## Novedades de la 0.3.0
+- Bloques y arboles REALES (con su textura) salen volando y girando en todos los eventos.
+- Anillos, ondas de choque y lineas de luz pegados al relieve del terreno.
+- Destello de lente (linea horizontal que cruza la pantalla) en Plasma, El Abismo y La Barca.
+- Plasma: lanza de luz solar con punta afilada, relampagos con ramas, sigilo de anillos blancos,
+  pozo de ~40 bloques de radio y ~70 de profundidad con paredes forradas, onda que arrasa arboles.
+- Juicio Divino: circulos magicos de relampagos dorados, pilares de luz, islas flotantes de
+  cesped y oro, y bloques de oro (pocos de diamante) donde se juntan las lineas.
+- La Caida (reemplaza a El Abismo): la nave en llamas cae del cielo con estela de fuego y humo, suelta pedazos de casco,
+  se estrella, arde con explosiones y estalla; deja dos crateres, restos ardiendo y una onda de fuego.
+  (El agujero negro queda guardado en el codigo, desactivado, para el ultimo evento del mod.)
+- Lluvia de Estrellas: 48 meteoros con cuerpo de roca real, estelas mucho mas grandes,
+  arboles arrancados, suelo chamuscado y crateres mayores.
+- La Barca Celeste: nave SOLIDA hecha de paneles de bloques, con lineas verdes, rejillas naranjas,
+  rayo verde, grietas de lava y pared de fuego pegada al terreno.

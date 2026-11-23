@@ -4,6 +4,7 @@ import java.util.Arrays;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -19,12 +20,16 @@ public class BlackHoleStrike extends BaseStrike {
     private final BlockPos hole;
     private long[] keys;
     private int cursor = 0;
+    private int lineCursor;
+    private final int slicesPerTick;
 
     public BlackHoleStrike(ServerLevel level, BlockPos center) {
         super(level, center);
         this.rMax = Math.max(8, Math.min(60, Math.round(36 * scale)));
         this.n = 2 * rMax + 1;
         this.hole = center.above(5);
+        this.lineCursor = -rMax;
+        this.slicesPerTick = (int) Math.ceil((2 * rMax + 1) / 35.0);
     }
 
     @Override
@@ -44,6 +49,43 @@ public class BlackHoleStrike extends BaseStrike {
         if (keys != null && t >= EAT_START && t <= EAT_END) eat();
         if (t >= 100 && t <= EAT_END + 5) pull();
         if (t == EAT_END) Terrain.hurtArea(level, cx(), cy(), cz(), 60 * scale, 400, 60F, 0, 4.0);
+        if (t > EAT_END && t <= EAT_END + 40) lineStep();
+    }
+
+    /** Forra la cavidad con obsidiana, obsidiana llorosa y amatista (por capas, repartido en varios ticks). */
+    private void lineStep() {
+        int r = rMax;
+        double in2 = (double) r * r;
+        double out2 = (r + 1.6) * (r + 1.6);
+        BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
+        for (int k = 0; k < slicesPerTick && lineCursor <= r; k++) {
+            int dy = lineCursor++;
+            if (dy > 2) continue;
+            for (int dx = -r - 2; dx <= r + 2; dx++) {
+                for (int dz = -r - 2; dz <= r + 2; dz++) {
+                    double d2 = dx * dx + dy * dy + dz * dz;
+                    if (d2 <= in2 || d2 > out2) continue;
+                    p.set(hole.getX() + dx, hole.getY() + dy, hole.getZ() + dz);
+                    if (!level.hasChunk(p.getX() >> 4, p.getZ() >> 4)) continue;
+                    BlockState st = level.getBlockState(p);
+                    if (!Terrain.breakable(level, p, st) || !st.getFluidState().isEmpty()) continue;
+                    if (!touchesAir(p)) continue;
+                    float f = rnd.nextFloat();
+                    BlockState liner;
+                    if (f < 0.50F) liner = Blocks.OBSIDIAN.defaultBlockState();
+                    else if (f < 0.76F) liner = Blocks.CRYING_OBSIDIAN.defaultBlockState();
+                    else if (f < 0.92F) liner = Blocks.AMETHYST_BLOCK.defaultBlockState();
+                    else liner = Blocks.BLACKSTONE.defaultBlockState();
+                    level.setBlock(p, liner, Terrain.FLAGS);
+                }
+            }
+        }
+    }
+
+    private boolean touchesAir(BlockPos p) {
+        return level.getBlockState(p.above()).isAir() || level.getBlockState(p.below()).isAir()
+                || level.getBlockState(p.north()).isAir() || level.getBlockState(p.south()).isAir()
+                || level.getBlockState(p.east()).isAir() || level.getBlockState(p.west()).isAir();
     }
 
     private void build() {

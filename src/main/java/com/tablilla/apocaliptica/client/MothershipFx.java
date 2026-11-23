@@ -6,14 +6,22 @@ import static com.tablilla.apocaliptica.client.FxGeo.lerp;
 import static com.tablilla.apocaliptica.client.FxGeo.sin;
 import static com.tablilla.apocaliptica.client.FxGeo.smooth;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.tablilla.apocaliptica.MothershipStrike;
+import java.util.List;
+import java.util.Random;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Matrix4f;
 
-/** La Barca Celeste: una nave colosal llega, carga su canon, arrasa la zona con un rayo y se marcha. */
+/**
+ * La Barca Celeste: una nave colosal, SOLIDA (hecha de paneles de bloques), con lineas verdes y rejillas naranjas,
+ * que llega, carga su canon, arrasa la zona con un rayo verde y se marcha.
+ */
 public class MothershipFx implements FxEffect {
     private static final int ARRIVE = MothershipStrike.ARRIVE;
     private static final int CHARGE = MothershipStrike.CHARGE;
@@ -23,17 +31,8 @@ public class MothershipFx implements FxEffect {
     private static final int D = MothershipStrike.DURATION;
     private static final float HOVER = 170.0F;
 
-    // y0, y1, radio abajo, radio arriba, r, g, b
-    private static final float[][] HULL = {
-        {-40, -30, 24, 44, 0.16F, 0.17F, 0.22F},
-        {-30, -16, 44, 82, 0.20F, 0.22F, 0.28F},
-        {-16, -5, 82, 112, 0.26F, 0.28F, 0.35F},
-        {-5, 3, 112, 112, 0.46F, 0.48F, 0.55F},
-        {3, 13, 112, 80, 0.36F, 0.39F, 0.46F},
-        {13, 22, 80, 46, 0.34F, 0.37F, 0.44F},
-        {22, 36, 46, 18, 0.30F, 0.34F, 0.42F},
-        {36, 40, 18, 6, 0.42F, 0.46F, 0.54F}
-    };
+    private GroundMap ground;
+    private List<Debris.Proto> protos;
 
     @Override
     public int duration() {
@@ -58,7 +57,12 @@ public class MothershipFx implements FxEffect {
 
     @Override
     public void tick(ClientLevel level, double x, double y, double z, int t, RandomSource r, float s, long seed) {
-        if (t == 1) FxUtil.snd(level, "mothership.arrival", x, y, z, 16.0F, 1.0F);
+        if (t == 1) {
+            float half = Math.min(270.0F, 250.0F * s);
+            ground = new GroundMap(level, x, y, z, half, Math.max(4.5F, half / 45.0F));
+            protos = Debris.sample(level, x, z, 4.0 * s, 115.0 * s, 300, 0.5F, r);
+            FxUtil.snd(level, "mothership.arrival", x, y, z, 16.0F, 1.0F);
+        }
         if (t == 100 || t == 400) FxUtil.snd(level, "mothership.hum", x, y, z, 16.0F, 1.0F);
         if (t == 130) FxUtil.snd(level, "mothership.sweep1", x, y, z, 16.0F, 1.0F);
         if (t == 190) FxUtil.snd(level, "mothership.sweep2", x, y, z, 16.0F, 1.0F);
@@ -67,6 +71,12 @@ public class MothershipFx implements FxEffect {
         if (t == FIRE) {
             FxUtil.snd(level, "mothership.boom", x, y, z, 16.0F, 1.0F);
             FxUtil.snd(level, "mothership.fire", x, y, z, 16.0F, 1.0F);
+        }
+        if (t == FIRE + 1 && protos != null) {
+            Debris.burst(protos, x, y, z, 2.3, 2.6, 40, 1.0F, 2.2F, 88.0 * s, 46.0 * s, r);
+            BlockState[] hot = {Blocks.MAGMA_BLOCK.defaultBlockState(), Blocks.OBSIDIAN.defaultBlockState(),
+                    Blocks.BLACKSTONE.defaultBlockState(), Blocks.CRYING_OBSIDIAN.defaultBlockState()};
+            Debris.burst(Debris.synthetic(hot, x, y, z, 12.0 * s, 70, r), x, y, z, 1.4, 3.6, 8, 1.0F, 2.4F, 30.0 * s, 46.0 * s, r);
         }
         if (t == FIRE + 4) FxUtil.snd(level, "mothership.beam1", x, y, z, 16.0F, 1.0F);
         if (t == FIRE + 70) FxUtil.snd(level, "mothership.beam2", x, y, z, 16.0F, 1.0F);
@@ -84,7 +94,7 @@ public class MothershipFx implements FxEffect {
                 double dx = Math.cos(a) * Math.cos(b);
                 double dy = Math.sin(b);
                 double dz = Math.sin(a) * Math.cos(b);
-                FxUtil.p(level, ParticleTypes.END_ROD, px + dx * 30 * q, py + dy * 30 * q, pz(z) + dz * 30 * q, -dx * 0.8, -dy * 0.8, -dz * 0.8);
+                FxUtil.p(level, ParticleTypes.END_ROD, px + dx * 30 * q, py + dy * 30 * q, z + dz * 30 * q, -dx * 0.8, -dy * 0.8, -dz * 0.8);
             }
         }
 
@@ -134,89 +144,70 @@ public class MothershipFx implements FxEffect {
         }
     }
 
-    private static double pz(double z) {
-        return z;
+    // ------------------------------------------------------------------ casco solido
+
+    private final ShipModel ship = new ShipModel();
+
+    @Override
+    public boolean usesHull() {
+        return true;
+    }
+
+    @Override
+    public void renderHull(VertexConsumer vc, PoseStack.Pose pose, float t, long seed, float s) {
+        float oy = sy(t);
+        if (oy > 3000.0F) return;
+        float ox = sx(t);
+        ShipModel.push(pose, ox, oy, 0, 0, 0);
+        ship.hull(vc, pose, seed, s, 0.0F);
+        ShipModel.pop(pose, ox, oy, 0, 0, 0);
     }
 
     @Override
     public void renderSolid(VertexConsumer vc, Matrix4f m, float t, long seed, float s) {
         float ox = sx(t);
-        float oy = sy(t);
-        float q = s;
-        float rot = t * 0.004F;
-
         float shadow = 0.38F * smooth(t, 20, ARRIVE) * (1.0F - smooth(t, DEPART, DEPART + 60));
-        if (shadow > 0.01F) FxGeo.ring(vc, m, ox, 0.35F, 0, 0.0F, 125.0F * q, 48, 0.0F, 0.0F, 0.0F, shadow, shadow * 0.5F);
-
-        if (oy < 3000.0F) {
-            for (float[] h : HULL) {
-                FxGeo.frustumSolid(vc, m, ox, oy, 0, h[0] * q, h[1] * q, h[2] * q, h[3] * q, 48, h[4], h[5], h[6], rot);
-            }
-        }
+        if (shadow > 0.01F) FxGeo.ring(vc, m, ox, 0.35F, 0, 0.0F, 125.0F * s, 48, 0.0F, 0.0F, 0.0F, shadow, shadow * 0.5F);
     }
+
+    // ------------------------------------------------------------------ luces
 
     @Override
     public void renderGlow(VertexConsumer vc, Matrix4f m, float t, long seed, float s) {
         float ox = sx(t);
         float oy = sy(t);
         float q = s;
-        if (oy > 3000.0F) return;
 
-        // luces del borde
-        for (int i = 0; i < 64; i++) {
-            float a = i * TAU / 64 + t * 0.008F;
-            float da = 0.022F;
-            float rr = 112.0F * q + 0.6F;
-            boolean warm = i % 2 == 0;
-            float cr = warm ? 1.0F : 0.4F;
-            float cg = warm ? 0.65F : 0.95F;
-            float cb = warm ? 0.25F : 1.0F;
-            float al = 0.9F * (0.55F + 0.45F * sin(t * 0.2F + i));
-            float h = 3.2F * q;
-            FxGeo.quad(vc, m,
-                    ox + cos(a - da) * rr, oy - h, sin(a - da) * rr, al,
-                    ox + cos(a + da) * rr, oy - h, sin(a + da) * rr, al,
-                    ox + cos(a + da) * rr, oy + h, sin(a + da) * rr, al,
-                    ox + cos(a - da) * rr, oy + h, sin(a - da) * rr, al,
-                    cr, cg, cb);
-        }
+        if (oy < 3000.0F) {
+            ShipModel.push(m, ox, oy, 0, 0, 0);
+            ship.lights(vc, m, t, q, 0.3F, 1.0F, 0.5F, 1.0F, 0.0F);
+            ShipModel.pop(m, ox, oy, 0, 0, 0);
 
-        // brillo del vientre y del canon
-        float charge = smooth(t, CHARGE - 30, FIRE);
-        FxGeo.ring(vc, m, ox, oy - 31.0F * q, 0, 24.0F * q, 44.0F * q, 40, 0.4F, 0.8F, 1.0F, 0.35F, 0.0F);
-        FxGeo.ring(vc, m, ox, oy - 41.0F * q, 0, 0.0F, 22.0F * q, 32, 0.6F, 0.9F, 1.0F, 0.2F + 0.7F * charge, 0.1F + 0.4F * charge);
+            // brillo del canon
+            float charge = smooth(t, CHARGE - 30, FIRE);
+            FxGeo.ring(vc, m, ox, oy - 41.0F * q, 0, 0.0F, 22.0F * q, 32, 0.5F, 1.0F, 0.65F, 0.2F + 0.7F * charge, 0.1F + 0.4F * charge);
 
-        // reflectores
-        float vis = smooth(t, ARRIVE - 20, ARRIVE + 20) * (1.0F - smooth(t, CHARGE, CHARGE + 30));
-        if (vis > 0.01F) {
-            for (int k = 0; k < 3; k++) {
-                float ang = t * 0.025F + k * 2.094F;
-                float er = (60.0F + 40.0F * sin(t * 0.02F + k)) * q;
-                FxGeo.tube(vc, m, ox + cos(ang) * 50.0F * q, oy - 20.0F * q, sin(ang) * 50.0F * q,
-                        cos(ang) * er, 0.0F, sin(ang) * er, 1.5F * q, 7.0F * q, 10, 0.7F, 0.9F, 1.0F, 0.25F * vis, 0.12F * vis);
+            // esfera de carga
+            float cs = smooth(t, CHARGE, FIRE) * (1.0F - smooth(t, FIRE_END, FIRE_END + 20));
+            float sr = 20.0F * q * cs + (t >= FIRE && t < FIRE_END ? 6.0F * q * sin(t * 0.5F) : 0.0F);
+            if (sr > 0.5F) {
+                float cy = oy - 46.0F * q;
+                FxGeo.sphere(vc, m, ox, cy, 0, sr * 0.5F, 8, 16, 1.0F, 1.0F, 1.0F, 0.9F);
+                FxGeo.sphere(vc, m, ox, cy, 0, sr * 0.8F, 8, 16, 0.4F, 1.0F, 0.6F, 0.5F);
+                FxGeo.sphere(vc, m, ox, cy, 0, sr * 1.15F, 8, 16, 0.25F, 0.9F, 0.45F, 0.2F);
             }
-        }
 
-        // esfera de carga
-        float cs = smooth(t, CHARGE, FIRE) * (1.0F - smooth(t, FIRE_END, FIRE_END + 20));
-        float sr = 20.0F * q * cs + (t >= FIRE && t < FIRE_END ? 6.0F * q * sin(t * 0.5F) : 0.0F);
-        if (sr > 0.5F) {
-            float cy = oy - 46.0F * q;
-            FxGeo.sphere(vc, m, ox, cy, 0, sr * 0.5F, 8, 16, 1.0F, 1.0F, 1.0F, 0.9F);
-            FxGeo.sphere(vc, m, ox, cy, 0, sr * 0.8F, 8, 16, 0.5F, 0.9F, 1.0F, 0.5F);
-            FxGeo.sphere(vc, m, ox, cy, 0, sr * 1.15F, 8, 16, 0.3F, 0.7F, 1.0F, 0.2F);
-        }
-
-        // rayo
-        if (t >= FIRE && t < FIRE_END + 25) {
-            float b = 11.0F * q * smooth(t, FIRE, FIRE + 10) * (1.0F - smooth(t, FIRE_END, FIRE_END + 25)) * (1.0F + 0.06F * sin(t * 1.5F));
-            float portY = oy - 44.0F * q;
-            if (b > 0.1F) {
-                FxGeo.glowBeam(vc, m, ox, 0, 0, ox, portY, 0, b, 0.6F, 0.9F, 1.0F, 1.0F, 16);
-                FxGeo.glowBeam(vc, m, ox, 0, 0, ox, portY, 0, b * 2.2F, 1.0F, 0.55F, 0.2F, 0.4F, 16);
-                for (int i = 0; i < 8; i++) {
-                    float yy = portY - ((t * 9.0F + i * 60.0F) % portY);
-                    FxGeo.ring(vc, m, ox, yy, 0, b * 1.1F, b * 2.6F, 24, 0.8F, 0.95F, 1.0F, 0.6F, 0.0F);
+            // rayo verde
+            if (t >= FIRE && t < FIRE_END + 25) {
+                float b = 11.0F * q * smooth(t, FIRE, FIRE + 10) * (1.0F - smooth(t, FIRE_END, FIRE_END + 25)) * (1.0F + 0.06F * sin(t * 1.5F));
+                float portY = oy - 44.0F * q;
+                if (b > 0.1F) {
+                    FxGeo.glowBeam(vc, m, ox, 0, 0, ox, portY, 0, b, 0.45F, 1.0F, 0.6F, 1.0F, 16);
+                    FxGeo.glowBeam(vc, m, ox, 0, 0, ox, portY, 0, b * 2.2F, 0.25F, 1.0F, 0.45F, 0.38F, 16);
+                    for (int i = 0; i < 8; i++) {
+                        float yy = portY - ((t * 9.0F + i * 60.0F) % portY);
+                        FxGeo.ring(vc, m, ox, yy, 0, b * 1.1F, b * 2.6F, 24, 0.6F, 1.0F, 0.75F, 0.6F, 0.0F);
+                    }
                 }
             }
         }
@@ -229,19 +220,45 @@ public class MothershipFx implements FxEffect {
             FxGeo.sphere(vc, m, 0, 0, 0, 60.0F * q * fk, 8, 24, 1.0F, 0.7F, 0.3F, 0.3F * fa);
             FxGeo.sphere(vc, m, 0, 0, 0, 80.0F * q * fk, 8, 28, 1.0F, 0.4F, 0.1F, 0.16F * fa);
         }
-        float glowFloor = smooth(t, FIRE, FIRE + 100) * (1.0F - smooth(t, FIRE + 150, FIRE + 300));
-        if (glowFloor > 0.01F) FxGeo.ring(vc, m, 0, 0.5F, 0, 0.0F, 90.0F * q, 48, 1.0F, 0.55F, 0.15F, 0.35F * glowFloor, 0.1F * glowFloor);
 
-        float since = t - FIRE;
-        float maxR = 240.0F * q;
-        for (int k = 0; k < 4; k++) {
-            float rr = (since - k * 14.0F) * 5.2F * q;
-            if (rr > 1.0F && rr < maxR) {
-                float fade = 1.0F - rr / maxR;
-                float w = 3.0F + rr * 0.05F;
-                FxGeo.ring(vc, m, 0, 0.9F + k, 0, rr - w, rr, 56, 1.0F, 0.75F, 0.4F, 0.0F, 0.75F * fade);
-                FxGeo.ring(vc, m, 0, 0.9F + k, 0, rr, rr + w, 56, 1.0F, 0.75F, 0.4F, 0.75F * fade, 0.0F);
-                FxGeo.tube(vc, m, 0, 0.5F, 0, 0, 20.0F + rr * 0.12F, 0, rr, rr + 5.0F, 56, 1.0F, 0.6F, 0.3F, 0.5F * fade, 0.0F);
+        if (ground != null && t > FIRE) {
+            // grietas de lava que se abren desde el impacto, pegadas al relieve
+            float ck = smooth(t, FIRE, FIRE + 70);
+            float cf = ck * (1.0F - smooth(t, FIRE + 170, FIRE + 330));
+            if (cf > 0.01F) {
+                for (int c = 0; c < 14; c++) {
+                    Random rr = new Random(seed * 13L + c * 7717L);
+                    float ang = rr.nextFloat() * TAU;
+                    float px = 0.0F;
+                    float pz = 0.0F;
+                    int pieces = 14;
+                    for (int i = 0; i < pieces; i++) {
+                        if (i > pieces * ck) break;
+                        ang += (rr.nextFloat() - 0.5F) * 0.55F;
+                        float nx = px + cos(ang) * 9.0F * q;
+                        float nz = pz + sin(ang) * 9.0F * q;
+                        float fade = 1.0F - i / (float) pieces;
+                        FxGeo.terrainLine(vc, m, ground, px, pz, nx, nz, 4.2F * q, 0.5F, 1.0F, 0.4F, 0.08F, 0.35F * cf * fade, 0.3F * cf * fade);
+                        FxGeo.terrainLine(vc, m, ground, px, pz, nx, nz, 1.4F * q, 0.6F, 1.0F, 0.85F, 0.45F, 0.95F * cf * fade, 0.9F * cf * fade);
+                        px = nx;
+                        pz = nz;
+                    }
+                }
+            }
+
+            // ondas de choque y pared de fuego pegadas al relieve
+            float since = t - FIRE;
+            float maxR = 240.0F * q;
+            for (int k = 0; k < 4; k++) {
+                float rr = (since - k * 14.0F) * 5.2F * q;
+                if (rr > 1.0F && rr < maxR) {
+                    float fade = 1.0F - rr / maxR;
+                    float w = 3.0F + rr * 0.05F;
+                    int sides = Math.max(48, Math.min(160, (int) (rr * 0.6F)));
+                    FxGeo.terrainRing(vc, m, ground, 0, 0, rr - w, rr, sides, 0.9F + k, 1.0F, 0.75F, 0.4F, 0.0F, 0.75F * fade);
+                    FxGeo.terrainRing(vc, m, ground, 0, 0, rr, rr + w, sides, 0.9F + k, 1.0F, 0.75F, 0.4F, 0.75F * fade, 0.0F);
+                    FxGeo.terrainWall(vc, m, ground, 0, 0, rr, 20.0F + rr * 0.12F, sides, 0.6F, 1.0F, 0.6F, 0.3F, 0.55F * fade, 0.0F);
+                }
             }
         }
     }
@@ -261,6 +278,21 @@ public class MothershipFx implements FxEffect {
             return k * k;
         }
         return 0.0F;
+    }
+
+    @Override
+    public float flare(float t) {
+        return smooth(t, FIRE, FIRE + 8) * (1.0F - smooth(t, FIRE_END - 20, FIRE_END));
+    }
+
+    @Override
+    public int flareColor() {
+        return 0x66FF99;
+    }
+
+    @Override
+    public float flareHeight() {
+        return 100.0F;
     }
 
     @Override

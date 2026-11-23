@@ -223,4 +223,139 @@ public final class FxGeo {
                     r * sh, g * sh, b * sh);
         }
     }
+
+    // ------------------------------------------------------------------ figuras pegadas al relieve
+
+    /** Cinta que sigue el relieve entre dos puntos (x, z locales). Alfa va de a0 a a1 a lo largo de la linea. */
+    public static void terrainLine(VertexConsumer vc, Matrix4f m, GroundMap gm, float x0, float z0, float x1, float z1,
+                                   float width, float lift, float cr, float cg, float cb, float a0, float a1) {
+        float dx = x1 - x0;
+        float dz = z1 - z0;
+        float len = (float) Math.sqrt(dx * dx + dz * dz);
+        if (len < 1.0E-3F) return;
+        float px = -dz / len * width * 0.5F;
+        float pz = dx / len * width * 0.5F;
+        int segs = Math.max(1, (int) Math.ceil(len / 2.5F));
+        for (int i = 0; i < segs; i++) {
+            float ka = i / (float) segs;
+            float kb = (i + 1) / (float) segs;
+            float xa = x0 + dx * ka;
+            float za = z0 + dz * ka;
+            float xb = x0 + dx * kb;
+            float zb = z0 + dz * kb;
+            float ha = gm.at(xa, za) + lift;
+            float hb = gm.at(xb, zb) + lift;
+            float aa = a0 + (a1 - a0) * ka;
+            float ab = a0 + (a1 - a0) * kb;
+            quad(vc, m,
+                    xa + px, ha, za + pz, aa,
+                    xa - px, ha, za - pz, aa,
+                    xb - px, hb, zb - pz, ab,
+                    xb + px, hb, zb + pz, ab,
+                    cr, cg, cb);
+        }
+    }
+
+    /** Anillo plano que sigue el relieve. */
+    public static void terrainRing(VertexConsumer vc, Matrix4f m, GroundMap gm, float cx, float cz,
+                                   float rIn, float rOut, int sides, float lift,
+                                   float cr, float cg, float cb, float aIn, float aOut) {
+        for (int i = 0; i < sides; i++) {
+            float a0 = TAU * i / sides;
+            float a1 = TAU * (i + 1) / sides;
+            float c0 = cos(a0);
+            float s0 = sin(a0);
+            float c1 = cos(a1);
+            float s1 = sin(a1);
+            quad(vc, m,
+                    cx + c0 * rIn, gm.at(cx + c0 * rIn, cz + s0 * rIn) + lift, cz + s0 * rIn, aIn,
+                    cx + c1 * rIn, gm.at(cx + c1 * rIn, cz + s1 * rIn) + lift, cz + s1 * rIn, aIn,
+                    cx + c1 * rOut, gm.at(cx + c1 * rOut, cz + s1 * rOut) + lift, cz + s1 * rOut, aOut,
+                    cx + c0 * rOut, gm.at(cx + c0 * rOut, cz + s0 * rOut) + lift, cz + s0 * rOut, aOut,
+                    cr, cg, cb);
+        }
+    }
+
+    /** Pared vertical (onda de choque) que sigue el relieve. */
+    public static void terrainWall(VertexConsumer vc, Matrix4f m, GroundMap gm, float cx, float cz,
+                                   float rad, float height, int sides, float lift,
+                                   float cr, float cg, float cb, float aBottom, float aTop) {
+        for (int i = 0; i < sides; i++) {
+            float a0 = TAU * i / sides;
+            float a1 = TAU * (i + 1) / sides;
+            float x0 = cx + cos(a0) * rad;
+            float z0 = cz + sin(a0) * rad;
+            float x1 = cx + cos(a1) * rad;
+            float z1 = cz + sin(a1) * rad;
+            float h0 = gm.at(x0, z0) + lift;
+            float h1 = gm.at(x1, z1) + lift;
+            quad(vc, m,
+                    x0, h0, z0, aBottom,
+                    x1, h1, z1, aBottom,
+                    x1, h1 + height, z1, aTop,
+                    x0, h0 + height, z0, aTop,
+                    cr, cg, cb);
+        }
+    }
+
+    /** Circulo hecho de cinta pegada al relieve. frac = que parte del circulo se dibuja (0 a 1). */
+    public static void polyCircle(VertexConsumer vc, Matrix4f m, GroundMap gm, float cx, float cz, float rad,
+                                  int sides, float width, float lift, float cr, float cg, float cb, float a, float frac) {
+        int n = Math.round(sides * clamp01(frac));
+        for (int i = 0; i < n; i++) {
+            float a0 = TAU * i / sides;
+            float a1 = TAU * (i + 1) / sides;
+            terrainLine(vc, m, gm, cx + cos(a0) * rad, cz + sin(a0) * rad, cx + cos(a1) * rad, cz + sin(a1) * rad,
+                    width, lift, cr, cg, cb, a, a);
+        }
+    }
+
+    /** Disco inclinado (disco de acrecion visto de lado). tilt en radianes, gira sobre el eje X. */
+    public static void tiltedDisk(VertexConsumer vc, Matrix4f m, float cx, float cy, float cz,
+                                  float rIn, float rOut, int sides, float tilt,
+                                  float cr, float cg, float cb, float aIn, float aOut, int arms, float phase) {
+        float ct = cos(tilt);
+        float st = sin(tilt);
+        for (int i = 0; i < sides; i++) {
+            float a0 = TAU * i / sides;
+            float a1 = TAU * (i + 1) / sides;
+            float mid = (a0 + a1) * 0.5F;
+            float mod = 0.2F + 0.8F * (0.5F + 0.5F * sin(arms * mid + phase));
+            float c0 = cos(a0);
+            float s0 = sin(a0);
+            float c1 = cos(a1);
+            float s1 = sin(a1);
+            quad(vc, m,
+                    cx + c0 * rIn, cy + s0 * rIn * st, cz + s0 * rIn * ct, aIn * mod,
+                    cx + c1 * rIn, cy + s1 * rIn * st, cz + s1 * rIn * ct, aIn * mod,
+                    cx + c1 * rOut, cy + s1 * rOut * st, cz + s1 * rOut * ct, aOut * mod,
+                    cx + c0 * rOut, cy + s0 * rOut * st, cz + s0 * rOut * ct, aOut * mod,
+                    cr, cg, cb);
+        }
+    }
+
+    /** Estrella (cuadrado que mira a la camara). (dx, dy, dz) = direccion unitaria desde la camara hacia la estrella. */
+    public static void star(VertexConsumer vc, Matrix4f m, float x, float y, float z,
+                            float dx, float dy, float dz, float size, float cr, float cg, float cb, float a) {
+        float rx = dz;
+        float rz = -dx;
+        float rl = (float) Math.sqrt(rx * rx + rz * rz);
+        if (rl < 1.0E-4F) return;
+        rx /= rl;
+        rz /= rl;
+        float ux = dy * rz;
+        float uy = dz * rx - dx * rz;
+        float uz = -dy * rx;
+        float ul = (float) Math.sqrt(ux * ux + uy * uy + uz * uz);
+        if (ul < 1.0E-4F) return;
+        ux /= ul;
+        uy /= ul;
+        uz /= ul;
+        quad(vc, m,
+                x - rx * size - ux * size, y - uy * size, z - rz * size - uz * size, a,
+                x + rx * size - ux * size, y - uy * size, z + rz * size - uz * size, a,
+                x + rx * size + ux * size, y + uy * size, z + rz * size + uz * size, a,
+                x - rx * size + ux * size, y + uy * size, z - rz * size + uz * size, a,
+                cr, cg, cb);
+    }
 }

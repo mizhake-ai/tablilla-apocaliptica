@@ -2,6 +2,8 @@ package com.tablilla.apocaliptica;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -46,6 +48,53 @@ public final class Terrain {
                 double nz = d.z / dist;
                 e.setDeltaMovement(e.getDeltaMovement().add(nx * push, push * 0.5, nz * push));
                 e.hurtMarked = true;
+            }
+        }
+    }
+
+    /** Cosas fragiles que una onda de choque arranca: hojas, troncos, madera, lana y todo lo que no tiene colision. */
+    public static boolean flimsy(ServerLevel level, BlockState st, BlockPos p) {
+        if (st.isAir()) return false;
+        if (st.getDestroySpeed(level, p) < 0) return false;
+        if (!st.getFluidState().isEmpty()) return false;
+        return st.is(BlockTags.LEAVES) || st.is(BlockTags.LOGS) || st.is(BlockTags.PLANKS)
+                || st.is(BlockTags.WOODEN_STAIRS) || st.is(BlockTags.WOODEN_SLABS) || st.is(BlockTags.WOODEN_DOORS)
+                || st.is(BlockTags.WOODEN_FENCES) || st.is(BlockTags.WOOL) || st.is(BlockTags.BEDS)
+                || st.getCollisionShape(level, p).isEmpty();
+    }
+
+    /** Arranca arboles y cosas fragiles de una columna, chamusca el suelo y a veces deja fuego. */
+    public static void scorchColumn(ServerLevel level, int x, int z, float groundChance, float fireChance, RandomSource rnd) {
+        if (!level.hasChunk(x >> 4, z >> 4)) return;
+        int top = surfaceTop(level, x, z);
+        BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
+        for (int y = top + 22; y >= top - 14; y--) {
+            p.set(x, y, z);
+            BlockState st = level.getBlockState(p);
+            if (flimsy(level, st, p)) clear(level, p);
+        }
+        int top2 = surfaceTop(level, x, z);
+        p.set(x, top2, z);
+        BlockState ground = level.getBlockState(p);
+        if (ground.is(Blocks.GRASS_BLOCK) || ground.is(Blocks.DIRT) || ground.is(Blocks.PODZOL)
+                || ground.is(Blocks.MYCELIUM) || ground.is(Blocks.ROOTED_DIRT)) {
+            if (rnd.nextFloat() < groundChance) {
+                level.setBlock(p, (rnd.nextFloat() < 0.12F ? Blocks.BLACKSTONE : Blocks.COARSE_DIRT).defaultBlockState(), FLAGS);
+            }
+        }
+        if (fireChance > 0.0F && rnd.nextFloat() < fireChance) {
+            p.set(x, top2 + 1, z);
+            if (level.getBlockState(p).isAir()) level.setBlock(p, Blocks.FIRE.defaultBlockState(), FLAGS);
+        }
+    }
+
+    /** Chamusca un circulo entero. */
+    public static void scorch(ServerLevel level, int cx, int cz, int radius, float groundChance, float fireChance, RandomSource rnd) {
+        int r2 = radius * radius;
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                if (dx * dx + dz * dz > r2) continue;
+                scorchColumn(level, cx + dx, cz + dz, groundChance, fireChance, rnd);
             }
         }
     }

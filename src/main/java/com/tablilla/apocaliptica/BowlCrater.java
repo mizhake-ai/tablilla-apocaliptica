@@ -9,18 +9,21 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 
-/** Excava un crater en forma de cuenco, columna por columna desde el centro, y reviste el fondo. */
+/** Excava un crater en forma de cuenco, columna por columna desde el centro, y reviste el fondo (y opcionalmente las paredes). */
 public final class BowlCrater {
     /** Elige el bloque del fondo segun la distancia al centro (0 = centro, 1 = borde). Null = no tocar. */
     public interface Liner {
         BlockState pick(double d, RandomSource rnd);
     }
 
+    private static final int[][] NEIGHBORS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
     private final ServerLevel level;
     private final BlockPos center;
     private final int radius;
     private final int depth;
     private final Liner liner;
+    private Liner wallLiner;
     private final RandomSource rnd;
     private final List<int[]> columns = new ArrayList<>();
     private int next = 0;
@@ -41,6 +44,12 @@ public final class BowlCrater {
         columns.sort(Comparator.comparingInt((int[] c) -> c[0] * c[0] + c[1] * c[1]));
     }
 
+    /** Activa el forrado de las paredes empinadas con este revestimiento. */
+    public BowlCrater walls(Liner w) {
+        this.wallLiner = w;
+        return this;
+    }
+
     public int total() {
         return columns.size();
     }
@@ -56,14 +65,22 @@ public final class BowlCrater {
         }
     }
 
+    /** Profundidad del cuenco en esa columna, o -1 si queda fuera del crater. */
+    private int depthAt(int dx, int dz) {
+        double d = Math.sqrt((double) (dx * dx + dz * dz)) / radius;
+        if (d >= 1.0) return -1;
+        return (int) Math.round(depth * Math.sqrt(Math.max(0.0, 1.0 - d * d)));
+    }
+
     private void carve(int dx, int dz) {
         int cx = center.getX() + dx;
         int cz = center.getZ() + dz;
         if (!level.hasChunk(cx >> 4, cz >> 4)) return;
 
         double d = Math.sqrt((double) (dx * dx + dz * dz)) / radius;
-        int dep = (int) Math.round(depth * Math.sqrt(Math.max(0.0, 1.0 - d * d)));
-        int floorY = center.getY() - dep;
+        int minY = level.getMinBuildHeight() + 1;
+        int dep = Math.max(0, depthAt(dx, dz));
+        int floorY = Math.max(minY, center.getY() - dep);
         int surface = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, cx, cz);
         int topY = Math.min(level.getMaxBuildHeight() - 1, Math.max(center.getY(), surface) + 24);
 
@@ -75,11 +92,41 @@ public final class BowlCrater {
             Terrain.clear(level, p);
         }
 
+        if (wallLiner != null) lineWalls(dx, dz, floorY, minY, p);
+
         if (d > 0.9 || liner == null) return;
         p.set(cx, floorY - 1, cz);
         BlockState below = level.getBlockState(p);
         if (!Terrain.breakable(level, p, below)) return;
         BlockState fused = liner.pick(d, rnd);
         if (fused != null) level.setBlock(p, fused, Terrain.FLAGS);
+    }
+
+    /** Forra la cara vertical que queda entre esta columna y las vecinas mas altas. */
+    private void lineWalls(int dx, int dz, int floorY, int minY, BlockPos.MutableBlockPos p) {
+        for (int[] o : NEIGHBORS) {
+            int ndx = dx + o[0];
+            int ndz = dz + o[1];
+            int nx = center.getX() + ndx;
+            int nz = center.getZ() + ndz;
+            if (!level.hasChunk(nx >> 4, nz >> 4)) continue;
+            int nd = depthAt(ndx, ndz);
+            int nFloor;
+            if (nd >= 0) {
+                nFloor = Math.max(minY, center.getY() - nd);
+            } else {
+                nFloor = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, nx, nz);
+            }
+            if (nFloor <= floorY) continue;
+            double nDist = Math.min(1.0, Math.sqrt((double) (ndx * ndx + ndz * ndz)) / radius);
+            int yTop = Math.min(nFloor - 1, floorY + 90);
+            for (int y = floorY; y <= yTop; y++) {
+                p.set(nx, y, nz);
+                BlockState st = level.getBlockState(p);
+                if (!Terrain.breakable(level, p, st)) continue;
+                BlockState w = wallLiner.pick(nDist, rnd);
+                if (w != null) level.setBlock(p, w, Terrain.FLAGS);
+            }
+        }
     }
 }

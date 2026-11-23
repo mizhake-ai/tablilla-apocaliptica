@@ -1,5 +1,6 @@
 package com.tablilla.apocaliptica.client;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.RandomSource;
@@ -34,5 +35,27 @@ public interface FxEffect {
     /** Capa de color sobre la pantalla (ARGB). Alfa 0 = nada. */
     default int tint(float t) {
         return 0;
+    }
+
+    /** true si este efecto dibuja geometria solida texturizada (nave, agujero negro) con renderHull. */
+    default boolean usesHull() {
+        return false;
+    }
+
+    /** Geometria SOLIDA con texturas de bloques (se dibuja con el RenderType de entidades). */
+    default void renderHull(VertexConsumer vc, PoseStack.Pose pose, float t, long seed, float scale) {}
+
+    /** Destello de lente: linea horizontal que cruza la pantalla, 0 a 1. */
+    default float flare(float t) {
+        return 0.0F;
+    }
+
+    default int flareColor() {
+        return 0xFFFFFF;
+    }
+
+    /** Altura (sobre el impacto) del punto brillante que produce el destello de lente. */
+    default float flareHeight() {
+        return 40.0F;
     }
 }

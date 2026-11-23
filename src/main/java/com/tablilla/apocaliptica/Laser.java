@@ -10,10 +10,10 @@ import net.minecraft.server.level.ServerLevel;
 public enum Laser {
     PLASMA("plasma", true),
     GODLY("godly", true),
-    BLACKHOLE("blackhole", true),
+    BLACKHOLE("blackhole", false),
     METEOR("meteor", true),
     MOTHERSHIP("mothership", true),
-    DOWNFALL("downfall", false),
+    DOWNFALL("downfall", true),
     PLANETKILLER("planetkiller", false),
     CRYSTALBLOOM("crystalbloom", false),
     SINKHOLE("sinkhole", false),
@@ -73,8 +73,8 @@ public enum Laser {
                 return new PlasmaStrike(level, pos);
             case GODLY:
                 return new GodlyStrike(level, pos);
-            case BLACKHOLE:
-                return new BlackHoleStrike(level, pos);
+            case DOWNFALL:
+                return new DownfallStrike(level, pos);
             case METEOR:
                 return new MeteorStrike(level, pos);
             case MOTHERSHIP:
