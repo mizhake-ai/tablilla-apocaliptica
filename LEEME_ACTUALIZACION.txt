@@ -1,13 +1,12 @@
 ACTUALIZACION 0.3.0 - Tablilla Apocaliptica (primeros 5 eventos)
-Eventos: Lanza de Ra, Juicio Divino, Lluvia de Estrellas, La Barca Celeste y La Caida.
-(El Abismo / agujero negro queda DESACTIVADO: se reserva para el ultimo evento.)
+Orden: 1 Lanza de Ra, 2 Juicio Divino, 3 Lluvia de Estrellas, 4 La Barca Celeste, 5 La Caida.
+(El Agujero Negro queda desactivado y al final de la lista, reservado para el ultimo evento.)
 
-COMO USARLA (GitHub, desde el navegador):
+COMO USARLA (GitHub, navegador):
 1. Descomprime este zip.
 2. Tu repositorio > Add file > Upload files.
 3. Arrastra TODO el contenido (carpeta "src", "gradle.properties", "LEEME.md"). Se reemplazan los archivos con el mismo nombre.
 4. Commit changes. GitHub Actions compila solo.
 5. Actions > ultimo "Compilar mod" > Artifacts > tablilla-apocaliptica-jar.
 
-No hace falta tocar sonidos, build.gradle ni el workflow.
 Si sale error rojo al compilar, mandame las lineas que dicen "error:".

@@ -40,7 +40,7 @@ public class GodlyStrike extends BaseStrike {
     protected void serverTick() {
         if (!StrikeManager.terrainDamage) return;
         if (t == CHARGE) {
-            Terrain.hurtArea(level, cx(), cy(), cz(), 45 * scale, 200, 60F, 0, 3.5);
+            Terrain.hurtArea(level, cx(), cy(), cz(), 90 * scale, 200, 60F, 0, 3.6);
             crater = new BowlCrater(level, center, Math.round(52 * scale), Math.round(28 * scale), LINER);
             perTick = (int) Math.ceil(crater.total() / 110.0);
         }

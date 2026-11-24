@@ -1,20 +1,11 @@
-# Tablilla Apocaliptica 0.3.0 (solo los 5 primeros eventos)
+# Tablilla Apocaliptica 0.3.0 (primeros 5 eventos)
 
-Eventos incluidos: Lanza de Ra (Plasma), Juicio Divino (Godly), Lluvia de Estrellas (Meteor Storm),
-La Barca Celeste (Mothership) y La Caida (Downfall).
+Orden en la rueda (pagina 1): 1 Lanza de Ra, 2 Juicio Divino, 3 Lluvia de Estrellas, 4 La Barca Celeste, 5 La Caida.
+El Agujero Negro (el ultimo evento, puesto final) queda desactivado y al final de la lista.
 
-## Novedades de la 0.3.0
-- Bloques y arboles REALES (con su textura) salen volando y girando en todos los eventos.
-- Anillos, ondas de choque y lineas de luz pegados al relieve del terreno.
-- Destello de lente (linea horizontal que cruza la pantalla) en Plasma, El Abismo y La Barca.
-- Plasma: lanza de luz solar con punta afilada, relampagos con ramas, sigilo de anillos blancos,
-  pozo de ~40 bloques de radio y ~70 de profundidad con paredes forradas, onda que arrasa arboles.
-- Juicio Divino: circulos magicos de relampagos dorados, pilares de luz, islas flotantes de
-  cesped y oro, y bloques de oro (pocos de diamante) donde se juntan las lineas.
-- La Caida (reemplaza a El Abismo): la nave en llamas cae del cielo con estela de fuego y humo, suelta pedazos de casco,
-  se estrella, arde con explosiones y estalla; deja dos crateres, restos ardiendo y una onda de fuego.
-  (El agujero negro queda guardado en el codigo, desactivado, para el ultimo evento del mod.)
-- Lluvia de Estrellas: 48 meteoros con cuerpo de roca real, estelas mucho mas grandes,
-  arboles arrancados, suelo chamuscado y crateres mayores.
-- La Barca Celeste: nave SOLIDA hecha de paneles de bloques, con lineas verdes, rejillas naranjas,
-  rayo verde, grietas de lava y pared de fuego pegada al terreno.
+- Plasma: lanza de luz solar, relampagos con ramas, pozo ~40 de radio y ~70 de profundidad con paredes forradas.
+- Godly: circulos magicos de relampagos dorados, pilares, islas flotantes, oro y diamante donde se juntan las lineas.
+- Meteor Storm: 72 meteoros + uno final del tamaño de una colina (cráter ~125), tierra levantada, ondas que empujan.
+- Mothership: nave-asteroide (roca, motores, anillos metalicos y sculk), pozo hasta la bedrock, zanja fundida, se va en un parpadeo.
+- Downfall: 7 misiles (3 la alcanzan), se estrella y abre un surco con tierra levantada, el motor revienta y un mini agujero negro se la traga.
+- Todos: bloques y arboles reales volando, anillos pegados al relieve, destello de lente.

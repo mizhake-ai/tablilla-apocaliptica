@@ -51,7 +51,7 @@
   "msg.tablilla.scale": "Escala de destrucción: %s",
   "laser.tablilla_apocaliptica.godly.desc": "Una columna de luz dorada con halos ascendentes cae del cielo y transforma el cráter en oro y cuarzo.",
   "laser.tablilla_apocaliptica.blackhole.desc": "Una esfera de oscuridad con disco de acreción devora el terreno y arrastra todo hacia ella, hasta colapsar.",
-  "laser.tablilla_apocaliptica.meteor.desc": "Decenas de meteoros en llamas caen sobre la zona y abren cráteres de magma y obsidiana.",
-  "laser.tablilla_apocaliptica.mothership.desc": "Una nave colosal oscurece el cielo, carga su cañón y arrasa todo con un rayo y una onda de fuego.",
-  "laser.tablilla_apocaliptica.downfall.desc": "Una nave colosal en llamas cae del cielo, se estrella y estalla, dejando un cráter gigante, una onda de fuego y restos ardiendo."
+  "laser.tablilla_apocaliptica.meteor.desc": "72 meteoros golpean la zona alrededor del objetivo y, al final, uno del tamaño de una colina lo aplasta: un cráter de unos 125 bloques.",
+  "laser.tablilla_apocaliptica.mothership.desc": "Una nave-asteroide de un kilómetro llega sobre el objetivo, perfora un pozo hasta la bedrock y corta una zanja fundida con su rayo. Luego se va en un parpadeo.",
+  "laser.tablilla_apocaliptica.downfall.desc": "Misiles lanzados desde el horizonte derriban la nave. Se estrella y abre un surco enorme; su motor revienta y un agujero negro se la traga entera."
 }

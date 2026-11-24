@@ -51,7 +51,7 @@
   "msg.tablilla.scale": "Destruction scale: %s",
   "laser.tablilla_apocaliptica.godly.desc": "A golden pillar of light with rising halos falls from the sky and turns the crater into gold and quartz.",
   "laser.tablilla_apocaliptica.blackhole.desc": "A sphere of darkness with an accretion disk devours the terrain and drags everything in, until it collapses.",
-  "laser.tablilla_apocaliptica.meteor.desc": "Dozens of flaming meteors fall over the area and open craters of magma and obsidian.",
-  "laser.tablilla_apocaliptica.mothership.desc": "A colossal ship darkens the sky, charges its cannon and wipes everything out with a beam and a wave of fire.",
-  "laser.tablilla_apocaliptica.downfall.desc": "A colossal burning ship falls from the sky, crashes and explodes, leaving a giant crater, a wave of fire and burning wreckage."
+  "laser.tablilla_apocaliptica.meteor.desc": "72 meteors pound the land round the target, then one the size of a hill hits it: a crater about 125 blocks across.",
+  "laser.tablilla_apocaliptica.mothership.desc": "A kilometre-long asteroid ship drops in over the target, drills a shaft to bedrock and cuts a molten trench with its beam. Then it blinks away.",
+  "laser.tablilla_apocaliptica.downfall.desc": "Missiles launched from the horizon bring the ship down. It crashes and carves a huge furrow; its engine ruptures and a black hole swallows it whole."
 }

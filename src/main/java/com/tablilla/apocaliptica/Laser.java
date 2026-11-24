@@ -10,7 +10,6 @@ import net.minecraft.server.level.ServerLevel;
 public enum Laser {
     PLASMA("plasma", true),
     GODLY("godly", true),
-    BLACKHOLE("blackhole", false),
     METEOR("meteor", true),
     MOTHERSHIP("mothership", true),
     DOWNFALL("downfall", true),
@@ -31,7 +30,8 @@ public enum Laser {
     CONVERGENCE("convergence", false),
     EARTHQUAKE("earthquake", false),
     SIXSTARS("sixstars", false),
-    COLOSSI("colossi", false);
+    COLOSSI("colossi", false),
+    BLACKHOLE("blackhole", false);
 
     public final String id;
     public final boolean ready;

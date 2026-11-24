@@ -52,9 +52,9 @@ public class MeteorFx implements FxEffect {
         if (t == 1) {
             for (int i = 0; i < MeteorPlan.COUNT; i++) {
                 groundAt(level, x, y, z, i);
-                boolean bigI = i % 12 == 11;
+                boolean bigI = plan.big[i];
                 protos[i] = Debris.sample(level, x + plan.ox[i], z + plan.oz[i], 0.0,
-                        Math.max(4.0, plan.crater[i] * 1.5), bigI ? 34 : 12, 0.5F, r);
+                        Math.max(4.0, plan.crater[i] * 1.5), plan.giant(i) ? 240 : (bigI ? 34 : 12), 0.5F, r);
             }
             FxUtil.snd(level, "meteor.lockon", x, y, z, 16.0F, 1.0F);
         }
@@ -64,7 +64,7 @@ public class MeteorFx implements FxEffect {
             FxUtil.snd(level, "meteor.approach", x, y, z, 16.0F, 1.0F);
         }
         if (t == 36) FxUtil.snd(level, "meteor.storm", x, y, z, 16.0F, 1.0F);
-        if (t == 150) FxUtil.snd(level, "meteor.rumble", x, y, z, 16.0F, 1.0F);
+        if (t == 150 || t == 400) FxUtil.snd(level, "meteor.rumble", x, y, z, 16.0F, 1.0F);
         if (t == D - 60) FxUtil.snd(level, "meteor.shutdown", x, y, z, 16.0F, 1.0F);
 
         Minecraft mc = Minecraft.getInstance();
@@ -116,16 +116,21 @@ public class MeteorFx implements FxEffect {
                 double d2 = mc.player == null ? 0.0 : mc.player.distanceToSqr(ix, iy, iz);
                 String nm = (d2 > 90.0 * 90.0 ? "meteor.hit_far" : "meteor.hit") + (1 + i % 3);
                 FxUtil.snd(level, nm, ix, iy, iz, 12.0F, 0.9F + r.nextFloat() * 0.2F);
-                boolean big = i % 12 == 11;
+                boolean big = plan.big[i];
+                boolean giantI = plan.giant(i);
                 if (big) FxUtil.snd(level, "meteor.impact", ix, iy, iz, 16.0F, 1.0F);
+                if (giantI) {
+                    FxUtil.snd(level, "plasma.collapse", ix, iy, iz, 16.0F, 1.0F);
+                    FxUtil.snd(level, "mothership.boom", ix, iy, iz, 16.0F, 1.0F);
+                }
                 int rc = Math.max(3, plan.crater[i]);
                 if (protos[i] != null) {
-                    Debris.burst(protos[i], ix, iy, iz, big ? 1.6 : 1.1, big ? 2.2 : 1.5, 3,
-                            big ? 1.2F : 0.8F, big ? 2.4F : 1.5F, rc, rc * 0.8, r);
+                    Debris.burst(protos[i], ix, iy, iz, giantI ? 3.0 : (big ? 1.6 : 1.1), giantI ? 3.4 : (big ? 2.2 : 1.5), giantI ? 40 : 3,
+                            big ? 1.2F : 0.8F, giantI ? 3.0F : (big ? 2.4F : 1.5F), rc, rc * 0.8, r);
                 }
                 FxUtil.p(level, ParticleTypes.EXPLOSION_EMITTER, ix, iy + 1, iz, 0, 0, 0);
                 if (big) {
-                    for (int e = 0; e < 5; e++) {
+                    for (int e = 0; e < (giantI ? 24 : 5); e++) {
                         FxUtil.p(level, ParticleTypes.EXPLOSION_EMITTER, ix + r.nextGaussian() * rc * 0.4, iy + 1, iz + r.nextGaussian() * rc * 0.4, 0, 0, 0);
                     }
                 }
@@ -154,7 +159,8 @@ public class MeteorFx implements FxEffect {
         for (int i = 0; i < MeteorPlan.COUNT; i++) {
             int ts = plan.start[i];
             int ti = plan.impactTick(i);
-            if (t < ts || t > ti + 36) continue;
+            float life = plan.giant(i) ? 170.0F : 36.0F;
+            if (t < ts || t > ti + life) continue;
             float ox = (float) plan.ox[i];
             float oz = (float) plan.oz[i];
             float rd = (float) plan.rad[i];
@@ -183,12 +189,12 @@ public class MeteorFx implements FxEffect {
                 FxGeo.sphere(vc, m, mx, my, mz, rd * 3.0F, 6, 10, 1.0F, 0.3F, 0.05F, 0.08F);
             } else {
                 float since = t - ti;
-                float fade = 1.0F - since / 36.0F;
+                float fade = 1.0F - since / life;
                 float rc = Math.max(3, plan.crater[i]);
                 float gr = smooth(since, 0, 8);
                 FxGeo.sphere(vc, m, ox, gy[i], oz, rc * 0.7F * gr, 6, 12, 1.0F, 0.9F, 0.6F, 0.55F * fade);
                 FxGeo.sphere(vc, m, ox, gy[i], oz, rc * 1.3F * gr, 6, 12, 1.0F, 0.5F, 0.15F, 0.3F * fade);
-                float rr = since * rc * 0.4F;
+                float rr = since * rc * (plan.giant(i) ? 1.1F : 0.4F);
                 FxGeo.ring(vc, m, ox, gy[i] + 0.6F, oz, Math.max(0.0F, rr - 1.8F), rr, 28, 1.0F, 0.7F, 0.3F, 0.0F, 0.6F * fade);
                 FxGeo.ring(vc, m, ox, gy[i] + 0.6F, oz, rr, rr + 1.8F, 28, 1.0F, 0.7F, 0.3F, 0.6F * fade, 0.0F);
             }
@@ -200,19 +206,21 @@ public class MeteorFx implements FxEffect {
         float a = 0.0F;
         for (int i = 0; i < MeteorPlan.COUNT; i++) {
             float dt = t - plan.impactTick(i);
-            if (dt >= 0.0F && dt < 60.0F) a += (i % 12 == 11 ? 2.2F : 0.8F) * (float) Math.exp(-dt / 10.0F);
+            if (dt >= 0.0F && dt < 160.0F) a += (plan.giant(i) ? 6.0F : (plan.big[i] ? 2.2F : 0.8F)) * (float) Math.exp(-dt / (plan.giant(i) ? 40.0F : 10.0F));
         }
-        return Math.min(a, 3.4F) * (1.0F - smooth(t, D - 60, D));
+        return Math.min(a, 7.0F) * (1.0F - smooth(t, D - 60, D));
     }
 
     @Override
     public float flash(float t) {
         float f = 0.0F;
-        for (int i = 11; i < MeteorPlan.COUNT; i += 12) {
+        for (int i = 0; i < MeteorPlan.COUNT; i++) {
+            if (!plan.big[i]) continue;
+            float len = plan.giant(i) ? 40.0F : 14.0F;
             float dt = t - plan.impactTick(i);
-            if (dt >= 0.0F && dt < 14.0F) {
-                float k = 1.0F - dt / 14.0F;
-                f = Math.max(f, 0.55F * k * k);
+            if (dt >= 0.0F && dt < len) {
+                float k = 1.0F - dt / len;
+                f = Math.max(f, (plan.giant(i) ? 1.0F : 0.55F) * k * k);
             }
         }
         return f;

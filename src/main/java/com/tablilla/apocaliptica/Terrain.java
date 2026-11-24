@@ -98,4 +98,17 @@ public final class Terrain {
             }
         }
     }
+
+    /** Vacia una columna desde top hasta floor (incluido), sin tocar lo irrompible. */
+    public static void cutColumn(ServerLevel level, int x, int z, int top, int floor) {
+        if (!level.hasChunk(x >> 4, z >> 4)) return;
+        BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
+        int f = Math.max(floor, level.getMinBuildHeight() + 1);
+        for (int y = Math.min(top, level.getMaxBuildHeight() - 1); y >= f; y--) {
+            p.set(x, y, z);
+            BlockState st = level.getBlockState(p);
+            if (!breakable(level, p, st)) continue;
+            clear(level, p);
+        }
+    }
 }

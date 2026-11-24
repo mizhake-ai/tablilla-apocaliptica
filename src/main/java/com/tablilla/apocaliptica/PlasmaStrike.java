@@ -55,7 +55,7 @@ public class PlasmaStrike extends BaseStrike {
     protected void serverTick() {
         if (!StrikeManager.terrainDamage) return;
         if (t == CHARGE) {
-            Terrain.hurtArea(level, cx(), cy(), cz(), 60 * scale, 250, 60F, 8, 3.0);
+            Terrain.hurtArea(level, cx(), cy(), cz(), 95 * scale, 250, 60F, 8, 3.6);
             int r = Mth.clamp(Math.round(40 * scale), 12, 110);
             int dep = Mth.clamp(Math.round(70 * scale), 16, 170);
             crater = new BowlCrater(level, center, r, dep, LINER).walls(WALLS);
