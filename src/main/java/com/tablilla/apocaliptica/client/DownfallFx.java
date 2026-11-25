@@ -76,13 +76,13 @@ public class DownfallFx implements FxEffect {
         float rz;
         float rx = 0.0F;
         if (t <= PLUNGE) {
-            x = lerp(-800.0F, -330.0F, ease(smooth(t, 0, PLUNGE)));
+            x = lerp(-950.0F, -560.0F, ease(smooth(t, 0, PLUNGE)));
             y = 300.0F;
             rz = -0.05F * smooth(t, FIRST_HIT, PLUNGE);
             rx = 0.10F * sin(t * 0.06F);
         } else if (t <= CRASH) {
             float k = (t - PLUNGE) / (float) (CRASH - PLUNGE);
-            x = lerp(-330.0F, TX * q, k);
+            x = lerp(-560.0F, TX * q, k);
             y = lerp(300.0F, 40.0F * q, (float) Math.pow(k, 1.5));
             rz = -(0.05F + 0.30F * k);
             rx = 0.10F * sin(t * 0.06F) * (1.0F - k);
@@ -239,6 +239,8 @@ public class DownfallFx implements FxEffect {
                 FxUtil.p(level, ParticleTypes.EXPLOSION_EMITTER, x + TX * q + r.nextGaussian() * 40 * q, y + 2, z + r.nextGaussian() * 30 * q, 0, 0, 0);
             }
         }
+        if (t > CRASH + 1 && t < CRASH + 56) Debris.ripple(level, x + TX * q, z, (t - CRASH) * 6.0 * q, 5.0 * s, 18, r);
+        if (t > RUPTURE + 1 && t < RUPTURE + 50) Debris.ripple(level, x + HX * q, z, (t - RUPTURE) * 6.0 * q, 5.0 * s, 14, r);
         if (t > CRASH && t <= STOP) {
             for (int i = 0; i < 12; i++) {
                 double ox = (r.nextDouble() - 0.5) * 360.0 * q;
@@ -263,7 +265,7 @@ public class DownfallFx implements FxEffect {
         double hy = y + 14.0 * q;
         if (t == RUPTURE) {
             FxUtil.snd(level, "mothership.boom", x, y, z, 16.0F, 0.8F);
-            FxUtil.snd(level, "blackhole.fire", x, y, z, 16.0F, 1.0F);
+            FxUtil.snd(level, "plasma.fire", x, y, z, 16.0F, 1.0F);
             FxUtil.snd(level, "plasma.collapse", x, y, z, 16.0F, 0.9F);
             for (int i = 0; i < 16; i++) {
                 FxUtil.p(level, ParticleTypes.EXPLOSION_EMITTER, hx + r.nextGaussian() * 18 * q, hy + r.nextGaussian() * 10 * q, z + r.nextGaussian() * 18 * q, 0, 0, 0);
@@ -315,7 +317,7 @@ public class DownfallFx implements FxEffect {
     }
 
     private float holeRadius(float t, float q) {
-        return 17.0F * q * smooth(t, RUPTURE, RUPTURE + 40) * (1.0F - smooth(t, PULL_END, HOLE_END));
+        return 36.0F * q * smooth(t, RUPTURE + 10, RUPTURE + 130) * (1.0F - smooth(t, PULL_END + 10, HOLE_END));
     }
 
     @Override
@@ -326,10 +328,6 @@ public class DownfallFx implements FxEffect {
             ShipModel.push(pose, a[0], a[1], 0, a[2], a[3]);
             ship.hull(vc, pose, seed, a[4], burn);
             ShipModel.pop(pose, a[0], a[1], 0, a[2], a[3]);
-        }
-        float hr = holeRadius(t, s);
-        if (hr > 0.2F) {
-            HullGeo.sphere(vc, pose, HullGeo.sprite(Blocks.BLACK_CONCRETE), HX * s, 14.0F * s, 0, hr, 12, 24, 0.04F, 0.04F, 0.06F);
         }
     }
 
@@ -389,7 +387,7 @@ public class DownfallFx implements FxEffect {
             ship.lights(vc, m, t, a[4], 1.0F, 0.4F, 0.12F, engine, burn);
             Random fr = new Random(seed * 3L + 5L);
             for (int i = 0; i < 16; i++) {
-                float fx = -140.0F + fr.nextFloat() * 360.0F;
+                float fx = -300.0F + fr.nextFloat() * 400.0F;
                 float fz = (fr.nextFloat() - 0.5F) * 70.0F;
                 float fl = 0.55F + 0.45F * sin(t * 0.3F + i * 2.1F);
                 float rad = (7.0F + fr.nextFloat() * 10.0F) * a[4] * fl * burn;
@@ -408,21 +406,37 @@ public class DownfallFx implements FxEffect {
             }
         }
 
-        // agujero negro pequeno
+        // bola de plasma incandescente que corta todo a su paso (estilo bola de teletransporte)
         float hr = holeRadius(t, q);
         float hxl = HX * q;
         float hyl = 14.0F * q;
         if (hr > 0.3F) {
-            FxGeo.sphere(vc, m, hxl, hyl, 0, hr * 1.12F, 8, 20, 1.0F, 0.7F, 0.3F, 0.22F);
-            FxGeo.sphere(vc, m, hxl, hyl, 0, hr * 1.5F, 8, 16, 1.0F, 0.5F, 0.2F, 0.08F);
-            float dk = smooth(t, RUPTURE + 10, RUPTURE + 50) * (1.0F - smooth(t, PULL_END - 10, PULL_END + 20));
-            if (dk > 0.01F) {
-                float tilt = 0.40F;
-                FxGeo.tiltedDisk(vc, m, hxl, hyl, 0, hr * 1.2F, hr * 1.9F, 64, tilt, 1.0F, 0.97F, 0.85F, 0.95F * dk, 0.6F * dk, 3, t * 0.22F);
-                FxGeo.tiltedDisk(vc, m, hxl, hyl, 0, hr * 1.9F, hr * 3.0F, 64, tilt, 1.0F, 0.85F, 0.4F, 0.7F * dk, 0.3F * dk, 4, -t * 0.15F);
-                FxGeo.tiltedDisk(vc, m, hxl, hyl, 0, hr * 3.0F, hr * 4.4F, 64, tilt, 1.0F, 0.55F, 0.2F, 0.35F * dk, 0.0F, 5, t * 0.1F);
-                FxGeo.tiltedDisk(vc, m, hxl, hyl, 0, hr * 1.1F, hr * 1.5F, 64, 1.40F, 1.0F, 0.9F, 0.7F, 0.5F * dk, 0.25F * dk, 2, t * 0.1F);
+            float fl = 0.9F + 0.1F * sin(t * 0.8F);
+            FxGeo.sphere(vc, m, hxl, hyl, 0, hr * 0.80F * fl, 10, 22, 0.85F, 0.92F, 1.0F, 0.80F);
+            FxGeo.sphere(vc, m, hxl, hyl, 0, hr * 0.97F, 10, 24, 1.0F, 0.65F, 0.25F, 0.55F);
+            FxGeo.sphere(vc, m, hxl, hyl, 0, hr * 1.12F, 8, 20, 1.0F, 0.35F, 0.08F, 0.30F);
+            FxGeo.sphere(vc, m, hxl, hyl, 0, hr * 1.35F, 8, 16, 1.0F, 0.30F, 0.05F, 0.10F);
+            Random er = new Random(seed * 5L + (long) (t / 2.0F));
+            for (int i = 0; i < 6; i++) {
+                int n = 10;
+                float[] xs = new float[n];
+                float[] ys = new float[n];
+                float[] zs = new float[n];
+                float a0 = er.nextFloat() * TAU;
+                float b0 = (er.nextFloat() - 0.5F) * 2.2F;
+                xs[0] = hxl + cos(a0) * cos(b0) * hr * 0.4F;
+                ys[0] = hyl + sin(b0) * hr * 0.4F;
+                zs[0] = sin(a0) * cos(b0) * hr * 0.4F;
+                for (int k = 1; k < n; k++) {
+                    xs[k] = xs[k - 1] + (cos(a0) * cos(b0) + (er.nextFloat() - 0.5F) * 0.7F) * hr * 0.14F;
+                    ys[k] = ys[k - 1] + (sin(b0) + (er.nextFloat() - 0.5F) * 0.7F) * hr * 0.14F;
+                    zs[k] = zs[k - 1] + (sin(a0) * cos(b0) + (er.nextFloat() - 0.5F) * 0.7F) * hr * 0.14F;
+                }
+                FxGeo.bolt(vc, m, xs, ys, zs, n, 0.6F, 0.85F, 0.95F, 1.0F, 0.9F);
+                FxGeo.bolt(vc, m, xs, ys, zs, n, 2.0F, 0.5F, 0.7F, 1.0F, 0.25F);
             }
+            // brillo del suelo cortado
+            if (ground != null) FxGeo.terrainRing(vc, m, ground, hxl, 0, 0.0F, hr * 1.5F, 40, 0.6F, 1.0F, 0.45F, 0.12F, 0.35F, 0.08F);
         }
         float rk = smooth(t, RUPTURE, RUPTURE + 40);
         float ra = 1.0F - smooth(t, RUPTURE + 40, RUPTURE + 140);

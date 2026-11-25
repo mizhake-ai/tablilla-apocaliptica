@@ -61,9 +61,11 @@ public class MeteorStrike extends BaseStrike {
     private void startGiant(int i) {
         giantStart = t;
         int r = Mth.clamp(plan.crater[i], 20, 120);
+        // borde de tierra levantada y quemada alrededor del crater gigante, igual que en los pequenos
+        Terrain.raiseRim(level, center.getX(), center.getZ(), r, 0.22, rnd);
         giant = new BowlCrater(level, center, r, Mth.clamp(Math.round(r * 0.65F), 14, 90), LINER).walls(LINER);
         giantPerTick = (int) Math.ceil(giant.total() / 100.0);
-        giantWave = new BlastWave(level, center, giantWaveR, 0.55F, 0.02F);
+        giantWave = new BlastWave(level, center, giantWaveR, 0.7F, 0.03F).withPush(5.0, giantWaveR * 1.1);
         Terrain.hurtArea(level, cx(), cy(), cz(), 170 * scale, 500, 300F, 15, 6.0);
     }
 
@@ -101,35 +103,7 @@ public class MeteorStrike extends BaseStrike {
                 }
             }
         }
-        raiseRim(x, z, rc);
-    }
-
-    /** Tierra levantada alrededor del crater: el borde se alza como un anillo de escombros. */
-    private void raiseRim(int x, int z, int rc) {
-        double outer = rc * 1.5;
-        int range = (int) Math.ceil(outer);
-        BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
-        for (int dx = -range; dx <= range; dx++) {
-            for (int dz = -range; dz <= range; dz++) {
-                double d = Math.sqrt(dx * dx + dz * dz);
-                if (d < rc * 0.92 || d > outer) continue;
-                int px = x + dx;
-                int pz = z + dz;
-                if (!level.hasChunk(px >> 4, pz >> 4)) continue;
-                double k = 1.0 - (d - rc * 0.92) / (outer - rc * 0.92);
-                int h = (int) Math.round(rc * 0.22 * k * (0.5 + rnd.nextDouble()));
-                if (h < 1) continue;
-                int top = Terrain.surfaceTop(level, px, pz);
-                p.set(px, top, pz);
-                BlockState base = level.getBlockState(p);
-                if (!Terrain.breakable(level, p, base) || !base.getFluidState().isEmpty()) continue;
-                BlockState fill = rnd.nextFloat() < 0.3F ? Blocks.COARSE_DIRT.defaultBlockState() : base;
-                for (int y = 1; y <= h; y++) {
-                    p.set(px, top + y, pz);
-                    if (level.getBlockState(p).isAir()) level.setBlock(p, fill, Terrain.FLAGS);
-                }
-            }
-        }
+        Terrain.raiseRim(level, x, z, rc, 0.22, rnd);
     }
 
     private BlockState liner() {

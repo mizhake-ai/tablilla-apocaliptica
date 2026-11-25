@@ -51,6 +51,7 @@ public class GodlyFx implements FxEffect {
             Debris.burst(protos, x, y, z, 1.3, 1.8, 26, 0.9F, 1.6F, 52.0 * s, 28.0 * s, r);
         }
         if (t == C + 6) Debris.islands(level, x, y, z, 8, 14.0 * s, 62.0 * s, 24, r);
+        if (t > C + 1 && t < C + 62) Debris.ripple(level, x, z, (t - C) * 3.2 * s, 4.0 * s, 16, r);
         if (t == C + 14) FxUtil.snd(level, "godly.rumble", x, y, z, 16.0F, 1.0F);
         if (t == C + 40) FxUtil.snd(level, "godly.accent", x, y, z, 16.0F, 1.0F);
         if (t == E - 8) FxUtil.snd(level, "godly.shutdown", x, y, z, 16.0F, 1.0F);
@@ -171,10 +172,110 @@ public class GodlyFx implements FxEffect {
         }
     }
 
+
+    // ------------------------------------------------------------------ efectos celestiales
+
+    /** Circulo magico horizontal flotante: anillos, un poligono inscrito y marcas, girando. shape = lados del poligono (0 = estrella). */
+    private void halo(VertexConsumer vc, Matrix4f m, float t, float y, float rad, int shape, float spin, float al) {
+        float w = Math.max(0.8F, rad * 0.025F);
+        FxGeo.ring(vc, m, 0, y, 0, rad - w, rad, 64, 1.0F, 0.9F, 0.55F, al, al);
+        FxGeo.ring(vc, m, 0, y, 0, rad * 0.80F - w * 0.7F, rad * 0.80F, 56, 1.0F, 0.95F, 0.75F, al * 0.8F, al * 0.8F);
+        int n = shape == 0 ? 5 : shape;
+        float pr = rad * 0.78F;
+        for (int i = 0; i < n; i++) {
+            float a0 = spin + i * TAU / n;
+            int skip = shape == 0 ? 2 : 1;
+            float a1 = spin + (i + skip) * TAU / n;
+            FxGeo.flatLine(vc, m, cos(a0) * pr, y, sin(a0) * pr, cos(a1) * pr, sin(a1) * pr, w, 1.0F, 0.97F, 0.8F, al);
+            FxGeo.ring(vc, m, cos(a0) * pr, y, sin(a0) * pr, rad * 0.06F, rad * 0.08F + w, 12, 1.0F, 0.9F, 0.6F, al * 0.9F, al * 0.9F);
+        }
+        int ticks = 36;
+        for (int i = 0; i < ticks; i++) {
+            float a = -spin * 0.6F + i * TAU / ticks;
+            float r1 = rad * 0.86F;
+            float r2 = rad * (i % 2 == 0 ? 0.96F : 0.91F);
+            FxGeo.flatLine(vc, m, cos(a) * r1, y, sin(a) * r1, cos(a) * r2, sin(a) * r2, w * 0.8F, 1.0F, 0.92F, 0.65F, al * 0.8F);
+        }
+    }
+
+    /** Ala de serafin: abanico de plumas (cintas afiladas) que sale del circulo central, en un plano que mira a la camara. */
+    private void wing(VertexConsumer vc, Matrix4f m, float cx, float cy, float cz, float ux, float uz, float side,
+                      float baseAngle, float span, float len, int feathers, float t, float al) {
+        for (int i = 0; i < feathers; i++) {
+            float k = feathers == 1 ? 0.5F : (float) i / (feathers - 1);
+            float ang = baseAngle + (k - 0.5F) * span + 0.04F * sin(t * 0.05F + i);
+            float l = len * (0.45F + 0.55F * (float) Math.sin(Math.PI * (0.15 + 0.85 * (1.0 - k))));
+            float dx = cos(ang) * side;
+            float dh = sin(ang);
+            float r0 = len * 0.10F;
+            float wb = len * 0.035F;
+            FxGeo.planeLine(vc, m, cx, cy, cz, ux, uz, dx * r0, dh * r0, dx * (r0 + l), dh * (r0 + l), wb, 0.0F,
+                    1.0F, 0.95F, 0.8F, al, al * 0.15F);
+            FxGeo.planeLine(vc, m, cx, cy, cz, ux, uz, dx * r0, dh * r0, dx * (r0 + l * 0.9F), dh * (r0 + l * 0.9F), wb * 2.6F, 0.0F,
+                    1.0F, 0.85F, 0.45F, al * 0.30F, 0.0F);
+        }
+    }
+
+    private void seraph(VertexConsumer vc, Matrix4f m, float t, float s, float vis) {
+        // circulos magicos horizontales a distintos niveles, tamaños y formas
+        float[] hy = {26.0F, 60.0F, 105.0F, 155.0F, 215.0F, 300.0F, 360.0F};
+        float[] hr = {58.0F, 40.0F, 70.0F, 34.0F, 52.0F, 78.0F, 46.0F};
+        int[] hs = {0, 3, 6, 4, 8, 0, 6};
+        for (int i = 0; i < hy.length; i++) {
+            float k = smooth(t, C - 10 + i * 5, C + 25 + i * 5);
+            float al = 0.75F * vis * k;
+            if (al < 0.02F) continue;
+            halo(vc, m, t, hy[i] * s, hr[i] * s * (0.9F + 0.1F * k), hs[i], t * 0.012F * (i % 2 == 0 ? 1 : -1) + i, al);
+        }
+
+        // circulo central grande (vertical, mirando a la camara) y 6 alas de distintos tamaños
+        float cxz = (float) Math.sqrt(FxCtx.camX * FxCtx.camX + FxCtx.camZ * FxCtx.camZ);
+        float dx = cxz < 1.0F ? 0.0F : (float) FxCtx.camX / cxz;
+        float dz = cxz < 1.0F ? 1.0F : (float) FxCtx.camZ / cxz;
+        float ux = -dz;
+        float uz = dx;
+        float cy = 250.0F * s;
+        float R = 46.0F * s;
+        float grow = smooth(t, C, C + 40);
+        float al = 0.85F * vis * grow;
+        if (al < 0.02F) return;
+        int sides = 56;
+        for (int i = 0; i < sides; i++) {
+            float a0 = TAU * i / sides;
+            float a1 = TAU * (i + 1) / sides;
+            FxGeo.planeLine(vc, m, 0, cy, 0, ux, uz, cos(a0) * R, sin(a0) * R, cos(a1) * R, sin(a1) * R, R * 0.07F, R * 0.07F, 1.0F, 0.9F, 0.55F, al, al);
+            FxGeo.planeLine(vc, m, 0, cy, 0, ux, uz, cos(a0) * R * 0.72F, sin(a0) * R * 0.72F, cos(a1) * R * 0.72F, sin(a1) * R * 0.72F,
+                    R * 0.035F, R * 0.035F, 1.0F, 0.97F, 0.8F, al * 0.9F, al * 0.9F);
+        }
+        for (int i = 0; i < 6; i++) {
+            float a0 = t * 0.008F + i * TAU / 6;
+            float a1 = t * 0.008F + (i + 2) * TAU / 6;
+            FxGeo.planeLine(vc, m, 0, cy, 0, ux, uz, cos(a0) * R * 0.7F, sin(a0) * R * 0.7F, cos(a1) * R * 0.7F, sin(a1) * R * 0.7F,
+                    R * 0.03F, R * 0.03F, 1.0F, 0.95F, 0.75F, al * 0.8F, al * 0.8F);
+        }
+        FxGeo.sphere(vc, m, 0, cy, 0, R * 0.30F, 6, 12, 1.0F, 1.0F, 0.9F, 0.55F * al);
+        FxGeo.sphere(vc, m, 0, cy, 0, R * 0.55F, 6, 12, 1.0F, 0.85F, 0.4F, 0.18F * al);
+
+        // 3 alas a cada lado: grande arriba, mediana al centro y chica abajo (el tamaño varia)
+        float[] ang = {0.62F, 0.0F, -0.55F};
+        float[] len = {230.0F, 300.0F, 170.0F};
+        float[] span = {0.95F, 0.85F, 0.8F};
+        int[] feath = {16, 20, 14};
+        float flap = 0.04F * sin(t * 0.04F);
+        for (int side = -1; side <= 1; side += 2) {
+            for (int w = 0; w < 3; w++) {
+                float sc = (0.85F + 0.15F * grow) * s;
+                wing(vc, m, 0, cy, 0, ux, uz, side, ang[w] + flap * (w == 0 ? 1 : -1), span[w], len[w] * sc, feath[w], t, 0.7F * al);
+            }
+        }
+    }
+
     @Override
     public void renderGlow(VertexConsumer vc, Matrix4f m, float t, long seed, float s) {
         float sg = smooth(t, 0, 20) * (1.0F - smooth(t, E, E + 35));
         if (sg > 0.01F && ground != null) magicCircles(vc, m, t, s, sg);
+        float vis = smooth(t, C - 10, C + 20) * (1.0F - smooth(t, E - 10, E + 35));
+        if (vis > 0.01F) seraph(vc, m, t, s, vis);
 
         float rad;
         float yLow;

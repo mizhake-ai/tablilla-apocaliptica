@@ -2,6 +2,8 @@ package com.tablilla.apocaliptica;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -110,5 +112,164 @@ public final class Terrain {
             if (!breakable(level, p, st)) continue;
             clear(level, p);
         }
+    }
+
+    /**
+     * Columna de una onda de choque. f = distancia relativa al radio de la onda (0 centro, 1 borde).
+     * Cerca: arranca arboles enteros y chamusca. Medio: ademas arranca trozos de terreno. Lejos: solo deshoja y arranca cesped.
+     */
+    public static void blastColumn(ServerLevel level, int x, int z, double f, float groundChance, float fireChance, RandomSource rnd) {
+        if (f <= 0.55) {
+            scorchColumn(level, x, z, groundChance, fireChance, rnd);
+            if (f >= 0.2 && rnd.nextFloat() < 0.07F) {
+                if (!level.hasChunk(x >> 4, z >> 4)) return;
+                int top = surfaceTop(level, x, z);
+                BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
+                for (int k = 0; k < 2; k++) {
+                    p.set(x, top - k, z);
+                    BlockState st = level.getBlockState(p);
+                    if (breakable(level, p, st) && st.getFluidState().isEmpty()) clear(level, p);
+                }
+            }
+            return;
+        }
+        if (!level.hasChunk(x >> 4, z >> 4)) return;
+        int top = surfaceTop(level, x, z);
+        BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
+        for (int y = top + 22; y >= top - 14; y--) {
+            p.set(x, y, z);
+            BlockState st = level.getBlockState(p);
+            if (st.isAir() || st.getDestroySpeed(level, p) < 0 || !st.getFluidState().isEmpty()) continue;
+            if (st.is(BlockTags.LEAVES) || st.getCollisionShape(level, p).isEmpty()) clear(level, p);
+        }
+        int top2 = surfaceTop(level, x, z);
+        p.set(x, top2, z);
+        if (level.getBlockState(p).is(Blocks.GRASS_BLOCK) && rnd.nextFloat() < 0.25F) {
+            level.setBlock(p, Blocks.DIRT.defaultBlockState(), FLAGS);
+        }
+    }
+
+    /** Empuja (mas fuerte cerca, mas suave lejos) todo lo que esta en el frente de la onda: criaturas, jugadores, objetos. */
+    public static void shockPush(ServerLevel level, double x, double y, double z, double innerRad, double outerRad,
+                                 double strength, double falloffR) {
+        AABB box = new AABB(x - outerRad, y - 12, z - outerRad, x + outerRad, y + 120, z + outerRad);
+        for (Entity e : level.getEntities((Entity) null, box, en -> en instanceof LivingEntity || en instanceof ItemEntity)) {
+            if (e.isSpectator()) continue;
+            double dx = e.getX() - x;
+            double dz = e.getZ() - z;
+            double d = Math.sqrt(dx * dx + dz * dz);
+            if (d < innerRad || d > outerRad || d < 0.01) continue;
+            double f = Math.max(0.2, 1.0 - d / falloffR);
+            double s = strength * 1.5 * f;
+            e.setDeltaMovement(e.getDeltaMovement().add(dx / d * s, s * 0.45, dz / d * s));
+            e.hurtMarked = true;
+        }
+    }
+
+    /** Tierra levantada alrededor de un crater: el borde se alza como un anillo de escombros. */
+    public static void raiseRim(ServerLevel level, int x, int z, int rc, double heightFactor, RandomSource rnd) {
+        double outer = rc * 1.5;
+        int range = (int) Math.ceil(outer);
+        BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
+        for (int dx = -range; dx <= range; dx++) {
+            for (int dz = -range; dz <= range; dz++) {
+                double d = Math.sqrt(dx * dx + dz * dz);
+                if (d < rc * 0.92 || d > outer) continue;
+                int px = x + dx;
+                int pz = z + dz;
+                if (!level.hasChunk(px >> 4, pz >> 4)) continue;
+                double k = 1.0 - (d - rc * 0.92) / (outer - rc * 0.92);
+                int h = (int) Math.round(rc * heightFactor * k * (0.5 + rnd.nextDouble()));
+                if (h < 1) continue;
+                int top = surfaceTop(level, px, pz);
+                p.set(px, top, pz);
+                BlockState base = level.getBlockState(p);
+                if (!breakable(level, p, base) || !base.getFluidState().isEmpty()) continue;
+                BlockState fill = rnd.nextFloat() < 0.3F ? Blocks.COARSE_DIRT.defaultBlockState() : base;
+                for (int y = 1; y <= h; y++) {
+                    p.set(px, top + y, pz);
+                    if (level.getBlockState(p).isAir()) level.setBlock(p, fill, FLAGS);
+                }
+            }
+        }
+    }
+
+    /** Tierra quemada: anillo de suelo chamuscado (con arboles arrancados) entre rIn y rOut. */
+    public static void burnRing(ServerLevel level, int x, int z, int rIn, int rOut, float groundChance, float fireChance, RandomSource rnd) {
+        int range = rOut;
+        for (int dx = -range; dx <= range; dx++) {
+            for (int dz = -range; dz <= range; dz++) {
+                double d = Math.sqrt(dx * dx + dz * dz);
+                if (d < rIn || d > rOut) continue;
+                scorchColumn(level, x + dx, z + dz, groundChance, fireChance, rnd);
+            }
+        }
+    }
+
+    private static final Block[] RUIN = {Blocks.MAGMA_BLOCK, Blocks.MAGMA_BLOCK, Blocks.MAGMA_BLOCK, Blocks.OBSIDIAN, Blocks.OBSIDIAN,
+            Blocks.BLACKSTONE, Blocks.COARSE_DIRT, Blocks.GLASS, Blocks.NETHERRACK, Blocks.CRYING_OBSIDIAN, Blocks.TINTED_GLASS};
+    private static final Block[] ORES = {Blocks.IRON_BLOCK, Blocks.COAL_BLOCK, Blocks.COPPER_BLOCK, Blocks.RAW_IRON_BLOCK, Blocks.GOLD_ORE, Blocks.REDSTONE_ORE};
+
+    /**
+     * Suelo de desastre: cubos sueltos de magma, obsidiana, cristal, tierra quemada, algun mineral, lava y fuego,
+     * repartidos en una corona entre rIn y rOut. Los diamantes son muy pocos.
+     */
+    public static void scatterRuin(ServerLevel level, int cx, int cz, int rIn, int rOut, double perThousandColumns,
+                                   double diamondChance, boolean ores, RandomSource rnd) {
+        double area = Math.PI * ((double) rOut * rOut - (double) rIn * rIn);
+        int n = (int) (area * perThousandColumns / 1000.0);
+        BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
+        for (int i = 0; i < n; i++) {
+            double a = rnd.nextDouble() * Math.PI * 2;
+            double d = Math.sqrt(rIn * (double) rIn + rnd.nextDouble() * (rOut * (double) rOut - rIn * (double) rIn));
+            int x = cx + (int) Math.round(Math.cos(a) * d);
+            int z = cz + (int) Math.round(Math.sin(a) * d);
+            if (!level.hasChunk(x >> 4, z >> 4)) continue;
+            int top = surfaceTop(level, x, z);
+            p.set(x, top, z);
+            BlockState cur = level.getBlockState(p);
+            if (!breakable(level, p, cur) || !cur.getFluidState().isEmpty()) continue;
+            float f = rnd.nextFloat();
+            BlockState put;
+            if (rnd.nextDouble() < diamondChance) put = Blocks.DIAMOND_BLOCK.defaultBlockState();
+            else if (ores && f < 0.12F) put = ORES[rnd.nextInt(ORES.length)].defaultBlockState();
+            else if (f < 0.20F) put = Blocks.LAVA.defaultBlockState();
+            else put = RUIN[rnd.nextInt(RUIN.length)].defaultBlockState();
+            level.setBlock(p, put, FLAGS);
+            // a veces es un monton de 2-3 cubos
+            if (rnd.nextFloat() < 0.35F && !put.is(Blocks.LAVA)) {
+                p.set(x, top + 1, z);
+                if (level.getBlockState(p).isAir()) level.setBlock(p, put, FLAGS);
+            }
+            if (rnd.nextFloat() < 0.10F) {
+                p.set(x, top + 2, z);
+                if (level.getBlockState(p).isAir()) level.setBlock(p, Blocks.FIRE.defaultBlockState(), FLAGS);
+            }
+        }
+    }
+
+    /** Un cubo de ruina (magma, obsidiana, cristal...) sobre la superficie de una columna. */
+    public static void ruinColumn(ServerLevel level, int x, int z, double diamondChance, RandomSource rnd) {
+        if (!level.hasChunk(x >> 4, z >> 4)) return;
+        BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
+        int top = surfaceTop(level, x, z);
+        p.set(x, top, z);
+        BlockState cur = level.getBlockState(p);
+        if (!breakable(level, p, cur) || !cur.getFluidState().isEmpty()) return;
+        BlockState put = rnd.nextDouble() < diamondChance ? Blocks.DIAMOND_BLOCK.defaultBlockState()
+                : RUIN[rnd.nextInt(RUIN.length)].defaultBlockState();
+        level.setBlock(p, put, FLAGS);
+        if (rnd.nextFloat() < 0.3F) {
+            p.set(x, top + 1, z);
+            if (level.getBlockState(p).isAir()) level.setBlock(p, put, FLAGS);
+        }
+    }
+
+    /** Derriba las montanas: corta todo lo que sobresale por encima de maxY (con un poco de relieve). */
+    public static void flattenColumn(ServerLevel level, int x, int z, int maxY, RandomSource rnd) {
+        if (!level.hasChunk(x >> 4, z >> 4)) return;
+        int top = surfaceTop(level, x, z);
+        int lim = maxY + rnd.nextInt(3);
+        if (top > lim) cutColumn(level, x, z, top + 25, lim + 1);
     }
 }

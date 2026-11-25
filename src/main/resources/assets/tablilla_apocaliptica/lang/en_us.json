@@ -32,7 +32,7 @@
   "laser.tablilla_apocaliptica.planetkiller": "World's End",
   "laser.tablilla_apocaliptica.crystalbloom": "Crystal Bloom",
   "laser.tablilla_apocaliptica.sinkhole": "The Sinkhole",
-  "laser.tablilla_apocaliptica.payload": "Sky Fire",
+  "laser.tablilla_apocaliptica.payload": "Fire from the Sky",
   "laser.tablilla_apocaliptica.nuke": "The Second Sun",
   "laser.tablilla_apocaliptica.rod": "Rod of the Gods",
   "laser.tablilla_apocaliptica.supercell": "Storm's Wrath",
@@ -53,5 +53,10 @@
   "laser.tablilla_apocaliptica.blackhole.desc": "A sphere of darkness with an accretion disk devours the terrain and drags everything in, until it collapses.",
   "laser.tablilla_apocaliptica.meteor.desc": "72 meteors pound the land round the target, then one the size of a hill hits it: a crater about 125 blocks across.",
   "laser.tablilla_apocaliptica.mothership.desc": "A kilometre-long asteroid ship drops in over the target, drills a shaft to bedrock and cuts a molten trench with its beam. Then it blinks away.",
-  "laser.tablilla_apocaliptica.downfall.desc": "Missiles launched from the horizon bring the ship down. It crashes and carves a huge furrow; its engine ruptures and a black hole swallows it whole."
+  "laser.tablilla_apocaliptica.downfall.desc": "Missiles launched from the horizon bring the ship down. It crashes and carves a huge furrow; its engine ruptures and a black hole swallows it whole.",
+  "laser.tablilla_apocaliptica.planetkiller.desc": "Seven ancient stone obelisks rise on the horizon and strike a ring in the sky with lightning; its beam leaves a crater 480 blocks across.",
+  "laser.tablilla_apocaliptica.nuclear": "Nuclear Mushroom",
+  "laser.tablilla_apocaliptica.nuclear.desc": "A huge mushroom cloud darkens the sky: flash, shockwave, a sweep of devastation and a glassy crater ringed with sand.",
+  "laser.tablilla_apocaliptica.sinkhole.desc": "Nothing from the sky: the land cracks and caves in slab by slab, each carrying its own ground and trees, into a pit about 225 blocks across down to bedrock.",
+  "laser.tablilla_apocaliptica.payload.desc": "An immense glowing rock comes down slowly from orbit and crashes: an extinction wave, a crater almost to bedrock and miles of scorched, stripped land."
 }

@@ -53,5 +53,10 @@
   "laser.tablilla_apocaliptica.blackhole.desc": "Una esfera de oscuridad con disco de acreción devora el terreno y arrastra todo hacia ella, hasta colapsar.",
   "laser.tablilla_apocaliptica.meteor.desc": "72 meteoros golpean la zona alrededor del objetivo y, al final, uno del tamaño de una colina lo aplasta: un cráter de unos 125 bloques.",
   "laser.tablilla_apocaliptica.mothership.desc": "Una nave-asteroide de un kilómetro llega sobre el objetivo, perfora un pozo hasta la bedrock y corta una zanja fundida con su rayo. Luego se va en un parpadeo.",
-  "laser.tablilla_apocaliptica.downfall.desc": "Misiles lanzados desde el horizonte derriban la nave. Se estrella y abre un surco enorme; su motor revienta y un agujero negro se la traga entera."
+  "laser.tablilla_apocaliptica.downfall.desc": "Misiles lanzados desde el horizonte derriban la nave. Se estrella y abre un surco enorme; su motor revienta y un agujero negro se la traga entera.",
+  "laser.tablilla_apocaliptica.planetkiller.desc": "Siete obeliscos de piedra antigua emergen en el horizonte y descargan rayos sobre un anillo en el cielo; su rayo abre un cráter de 480 bloques.",
+  "laser.tablilla_apocaliptica.nuclear": "Hongo Nuclear",
+  "laser.tablilla_apocaliptica.nuclear.desc": "Un hongo nuclear enorme oscurece el cielo: destello, onda de choque, barrido de devastación y un cráter vitrificado rodeado de arena.",
+  "laser.tablilla_apocaliptica.sinkhole.desc": "Nada cae del cielo: el suelo se agrieta y se hunde losa por losa, cada una con su tierra y sus árboles, hasta una sima de unos 225 bloques de ancho que llega a la bedrock.",
+  "laser.tablilla_apocaliptica.payload.desc": "Una roca inmensa e incandescente baja lenta desde la órbita y se estrella: onda de extinción, cráter hasta casi la bedrock y kilómetros de tierra arrasada y quemada."
 }

@@ -80,7 +80,8 @@ public class MothershipStrike extends BaseStrike {
             Terrain.hurtArea(level, cx(), cy(), cz(), 120 * scale, 500, 200F, 10, 4.5);
             mouth = new BowlCrater(level, center, Mth.clamp(Math.round(40 * scale), 12, 90), Mth.clamp(Math.round(14 * scale), 6, 40), LINER);
             mouthPerTick = (int) Math.ceil(mouth.total() / 100.0);
-            wave = new BlastWave(level, center, waveR, 0.5F, 0.015F);
+            wave = new BlastWave(level, center, waveR, 0.6F, 0.02F).withPush(4.0, waveR * 1.1);
+            Terrain.raiseRim(level, center.getX(), center.getZ(), Mth.clamp(Math.round(40 * scale), 12, 90), 0.16, rnd);
             shaft = new ArrayList<>();
             for (int dx = -shaftR; dx <= shaftR; dx++) {
                 for (int dz = -shaftR; dz <= shaftR; dz++) {
@@ -120,22 +121,46 @@ public class MothershipStrike extends BaseStrike {
 
     private void cutSlice(int sx) {
         int x = center.getX() + sx;
-        for (int dz = -trenchW; dz <= trenchW; dz++) {
+        int ridge = Math.max(4, Math.round(9 * scale));
+        int burn = Math.max(8, Math.round(22 * scale));
+        BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
+        for (int dz = -(trenchW + burn); dz <= trenchW + burn; dz++) {
             int z = center.getZ() + dz;
             if (!level.hasChunk(x >> 4, z >> 4)) continue;
-            double k = (double) dz / (trenchW + 0.5);
-            int surface = Terrain.surfaceTop(level, x, z);
-            int dep = (int) Math.round(trenchDepth * (1.0 - k * k));
-            int floorY = surface - dep;
-            Terrain.cutColumn(level, x, z, surface + 22, floorY);
-            BlockPos fp = new BlockPos(x, floorY - 1, z);
-            BlockState st = level.getBlockState(fp);
-            if (!Terrain.breakable(level, fp, st)) continue;
-            BlockState lining;
-            if (dz == 0 && sx % 4 == 0) lining = Blocks.LAVA.defaultBlockState();
-            else if (Math.abs(dz) <= 1) lining = Blocks.MAGMA_BLOCK.defaultBlockState();
-            else lining = rnd.nextFloat() < 0.55F ? Blocks.OBSIDIAN.defaultBlockState() : Blocks.BLACKSTONE.defaultBlockState();
-            level.setBlock(fp, lining, Terrain.FLAGS);
+            int ad = Math.abs(dz);
+            if (ad <= trenchW) {
+                double k = (double) dz / (trenchW + 0.5);
+                int surface = Terrain.surfaceTop(level, x, z);
+                int dep = (int) Math.round(trenchDepth * (1.0 - k * k));
+                int floorY = surface - dep;
+                Terrain.cutColumn(level, x, z, surface + 22, floorY);
+                BlockPos fp = new BlockPos(x, floorY - 1, z);
+                BlockState st = level.getBlockState(fp);
+                if (!Terrain.breakable(level, fp, st)) continue;
+                BlockState lining;
+                if (dz == 0 && sx % 4 == 0) lining = Blocks.LAVA.defaultBlockState();
+                else if (Math.abs(dz) <= 1) lining = Blocks.MAGMA_BLOCK.defaultBlockState();
+                else lining = rnd.nextFloat() < 0.55F ? Blocks.OBSIDIAN.defaultBlockState() : Blocks.BLACKSTONE.defaultBlockState();
+                level.setBlock(fp, lining, Terrain.FLAGS);
+            } else {
+                // junto a la zanja: tierra levantada por la presion y, mas alla, tierra quemada
+                if (ad <= trenchW + ridge) {
+                    double k = 1.0 - (double) (ad - trenchW) / ridge;
+                    int h = (int) Math.round(4.0 * scale * k * (0.5 + rnd.nextDouble()));
+                    if (h >= 1) {
+                        int surface = Terrain.surfaceTop(level, x, z);
+                        p.set(x, surface, z);
+                        BlockState base = level.getBlockState(p);
+                        if (Terrain.breakable(level, p, base) && base.getFluidState().isEmpty()) {
+                            for (int y = 1; y <= h; y++) {
+                                p.set(x, surface + y, z);
+                                if (level.getBlockState(p).isAir()) level.setBlock(p, base, Terrain.FLAGS);
+                            }
+                        }
+                    }
+                }
+                if (rnd.nextFloat() < 0.8F) Terrain.scorchColumn(level, x, z, 0.65F, 0.01F, rnd);
+            }
         }
     }
 }

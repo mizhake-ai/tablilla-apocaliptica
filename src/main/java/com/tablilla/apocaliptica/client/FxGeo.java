@@ -358,4 +358,38 @@ public final class FxGeo {
                 x - rx * size + ux * size, y + uy * size, z - rz * size + uz * size, a,
                 cr, cg, cb);
     }
+
+    /** Cinta fina en el plano horizontal a altura y. */
+    public static void flatLine(VertexConsumer vc, Matrix4f m, float x0, float y, float z0, float x1, float z1,
+                                float width, float cr, float cg, float cb, float a) {
+        float dx = x1 - x0;
+        float dz = z1 - z0;
+        float len = (float) Math.sqrt(dx * dx + dz * dz);
+        if (len < 1.0E-3F) return;
+        float px = -dz / len * width * 0.5F;
+        float pz = dx / len * width * 0.5F;
+        quad(vc, m, x0 + px, y, z0 + pz, a, x0 - px, y, z0 - pz, a, x1 - px, y, z1 - pz, a, x1 + px, y, z1 + pz, a, cr, cg, cb);
+    }
+
+    /** Cinta en un plano vertical definido por el eje horizontal (ux, uz) y la altura: de (a0, h0) a (a1, h1). */
+    public static void planeLine(VertexConsumer vc, Matrix4f m, float cx, float cy, float cz, float ux, float uz,
+                                 float a0, float h0, float a1, float h1, float w0, float w1,
+                                 float cr, float cg, float cb, float al0, float al1) {
+        float dx = a1 - a0;
+        float dh = h1 - h0;
+        float len = (float) Math.sqrt(dx * dx + dh * dh);
+        if (len < 1.0E-3F) return;
+        float nx = -dh / len;
+        float nh = dx / len;
+        float p0x = nx * w0 * 0.5F;
+        float p0h = nh * w0 * 0.5F;
+        float p1x = nx * w1 * 0.5F;
+        float p1h = nh * w1 * 0.5F;
+        quad(vc, m,
+                cx + ux * (a0 + p0x), cy + h0 + p0h, cz + uz * (a0 + p0x), al0,
+                cx + ux * (a0 - p0x), cy + h0 - p0h, cz + uz * (a0 - p0x), al0,
+                cx + ux * (a1 - p1x), cy + h1 - p1h, cz + uz * (a1 - p1x), al1,
+                cx + ux * (a1 + p1x), cy + h1 + p1h, cz + uz * (a1 + p1x), al1,
+                cr, cg, cb);
+    }
 }

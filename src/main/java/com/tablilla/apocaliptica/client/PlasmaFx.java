@@ -56,6 +56,7 @@ public class PlasmaFx implements FxEffect {
                     Blocks.BLACKSTONE.defaultBlockState(), Blocks.NETHERRACK.defaultBlockState()};
             Debris.burst(Debris.synthetic(hot, x, y, z, 7.0 * s, 90, r), x, y, z, 1.1, 3.4, 6, 0.8F, 1.8F, 20.0 * s, 70.0 * s, r);
         }
+        if (t > C + 1 && t < C + 62) Debris.ripple(level, x, z, (t - C) * 3.4 * s, 4.0 * s, 16, r);
         if (t == C + 8) FxUtil.snd(level, "plasma.collapse", x, y, z, 16.0F, 1.0F);
         if (t == C + 12) FxUtil.snd(level, "plasma.rumble", x, y, z, 16.0F, 1.0F);
         if (t > C && t < E && t % 40 == 0) FxUtil.snd(level, "plasma.crackle", x, y, z, 16.0F, 1.0F);

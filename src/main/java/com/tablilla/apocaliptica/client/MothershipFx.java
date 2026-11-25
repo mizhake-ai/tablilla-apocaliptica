@@ -156,6 +156,7 @@ public class MothershipFx implements FxEffect {
                 FxUtil.p(level, ParticleTypes.FLAME, x, y + 2, z, Math.cos(a) * Math.cos(b) * sp, Math.sin(b) * sp, Math.sin(a) * Math.cos(b) * sp);
             }
         }
+        if (t > FIRE + 1 && t < FIRE + 56) Debris.ripple(level, x, z, (t - FIRE) * 5.0 * s, 5.0 * s, 18, r);
         int since = t - FIRE;
         if (since >= 1 && since <= 60) {
             double rr = since * 4.6 * q;

@@ -13,11 +13,10 @@ public enum Laser {
     METEOR("meteor", true),
     MOTHERSHIP("mothership", true),
     DOWNFALL("downfall", true),
-    PLANETKILLER("planetkiller", false),
-    CRYSTALBLOOM("crystalbloom", false),
-    SINKHOLE("sinkhole", false),
-    PAYLOAD("payload", false),
-    NUKE("nuke", false),
+    PLANETKILLER("planetkiller", true),
+    NUCLEAR("nuclear", true),
+    SINKHOLE("sinkhole", true),
+    PAYLOAD("payload", true),
     ROD("rod", false),
     SUPERCELL("supercell", false),
     HURRICANE("hurricane", false),
@@ -31,6 +30,7 @@ public enum Laser {
     EARTHQUAKE("earthquake", false),
     SIXSTARS("sixstars", false),
     COLOSSI("colossi", false),
+    NUKE("nuke", false),
     BLACKHOLE("blackhole", false);
 
     public final String id;
@@ -79,6 +79,14 @@ public enum Laser {
                 return new MeteorStrike(level, pos);
             case MOTHERSHIP:
                 return new MothershipStrike(level, pos);
+            case PLANETKILLER:
+                return new PlanetKillerStrike(level, pos);
+            case NUCLEAR:
+                return new NuclearStrike(level, pos);
+            case SINKHOLE:
+                return new SinkholeStrike(level, pos);
+            case PAYLOAD:
+                return new PayloadStrike(level, pos);
             default:
                 return null;
         }

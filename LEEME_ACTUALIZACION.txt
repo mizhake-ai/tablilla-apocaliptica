@@ -1,6 +1,4 @@
-ACTUALIZACION 0.3.0 - Tablilla Apocaliptica (primeros 5 eventos)
-Orden: 1 Lanza de Ra, 2 Juicio Divino, 3 Lluvia de Estrellas, 4 La Barca Celeste, 5 La Caida.
-(El Agujero Negro queda desactivado y al final de la lista, reservado para el ultimo evento.)
+ACTUALIZACION 0.4.0 - Tablilla Apocaliptica (10 eventos: 9 listos + 1 pendiente)
 
 COMO USARLA (GitHub, navegador):
 1. Descomprime este zip.
@@ -9,4 +7,7 @@ COMO USARLA (GitHub, navegador):
 4. Commit changes. GitHub Actions compila solo.
 5. Actions > ultimo "Compilar mod" > Artifacts > tablilla-apocaliptica-jar.
 
-Si sale error rojo al compilar, mandame las lineas que dicen "error:".
+Este zip trae TODO el proyecto (no solo lo nuevo).
+Si sale error rojo, mandame las lineas que dicen "error:".
+
+PARA PROBAR CON SHADERS (en el juego): /tablillafx info  |  /tablillafx stage 0-3  |  /tablillafx glow 0-2  |  /tablillafx fog 0|1

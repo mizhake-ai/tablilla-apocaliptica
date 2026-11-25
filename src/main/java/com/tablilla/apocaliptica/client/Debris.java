@@ -182,6 +182,49 @@ public final class Debris {
         }
     }
 
+
+    /** Ola de terreno: bloques del anillo que pasa la onda de choque saltan un momento y vuelven a su sitio. */
+    public static void ripple(ClientLevel level, double cx, double cz, double radius, double thick, int count, RandomSource r) {
+        if (radius < 2.0) return;
+        List<Proto> list = sample(level, cx, cz, Math.max(0.0, radius - thick), radius + thick, count, 0.2F, r);
+        for (Proto p : list) {
+            if (PIECES.size() >= MAX) return;
+            Piece q = base(p, 0.95F, 1.15F, r);
+            q.vx = 0.0;
+            q.vz = 0.0;
+            q.vy = 0.30 + r.nextDouble() * 0.40;
+            q.delay = r.nextInt(3);
+            q.floorY = p.y - 0.6;
+            q.life = 50;
+            q.vrx = (r.nextFloat() - 0.5F) * 4.0F;
+            q.vry = (r.nextFloat() - 0.5F) * 4.0F;
+            q.vrz = (r.nextFloat() - 0.5F) * 4.0F;
+            PIECES.add(q);
+        }
+    }
+
+
+    /** Losas que se hunden: el bloque cae rigido hacia abajo hasta floorY (todos con la misma aceleracion, como una sola losa). */
+    public static void fall(List<Proto> list, double floorY, int delay, RandomSource r) {
+        for (Proto p : list) {
+            if (PIECES.size() >= MAX) return;
+            Piece q = base(p, 1.0F, 1.0F, r);
+            q.vx = 0.0;
+            q.vz = 0.0;
+            q.vy = -0.12;
+            q.delay = delay;
+            q.floorY = floorY;
+            q.life = 400;
+            q.vrx = 0.0F;
+            q.vry = 0.0F;
+            q.vrz = 0.0F;
+            q.rx = 0.0F;
+            q.ry = 0.0F;
+            q.rz = 0.0F;
+            PIECES.add(q);
+        }
+    }
+
     /** Los bloques giran en espiral y suben hacia un punto (el agujero negro). */
     public static void spiral(List<Proto> list, double hx, double hy, double hz, int maxDelay, int life,
                               float sizeMin, float sizeMax, RandomSource r) {

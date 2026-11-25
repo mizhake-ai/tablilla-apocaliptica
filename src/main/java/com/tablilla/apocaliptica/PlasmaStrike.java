@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.Blocks;
 public class PlasmaStrike extends BaseStrike {
     public static final int CHARGE = 70;
     public static final int BEAM_END = 200;
-    public static final int DURATION = 270;
+    public static final int DURATION = 340;
 
     private static final BowlCrater.Liner LINER = (d, r) -> {
         if (d < 0.30) return Blocks.MAGMA_BLOCK.defaultBlockState();
@@ -28,6 +28,9 @@ public class PlasmaStrike extends BaseStrike {
 
     private BowlCrater crater;
     private BlastWave wave;
+    private SpikeCrown spikes;
+    private boolean spikesStarted = false;
+    private int spikeStart = 0;
     private int perTick = 1;
     private final int waveR;
 
@@ -58,14 +61,25 @@ public class PlasmaStrike extends BaseStrike {
             Terrain.hurtArea(level, cx(), cy(), cz(), 95 * scale, 250, 60F, 8, 3.6);
             int r = Mth.clamp(Math.round(40 * scale), 12, 110);
             int dep = Mth.clamp(Math.round(70 * scale), 16, 170);
+            // el borde del impacto se alza como un anillo de tierra levantada
+            Terrain.raiseRim(level, center.getX(), center.getZ(), r, 0.16, rnd);
             crater = new BowlCrater(level, center, r, dep, LINER).walls(WALLS);
+            spikes = new SpikeCrown(level, center, r, Mth.clamp(Math.round(30 * scale), 16, 60), 26.0 * scale, 58.0 * scale, Math.max(1.0, Math.sqrt(scale)));
             perTick = (int) Math.ceil(crater.total() / 120.0);
-            wave = new BlastWave(level, center, waveR, 0.45F, 0.012F);
+            wave = new BlastWave(level, center, waveR, 0.7F, 0.02F).withPush(3.2, waveR * 1.1);
         }
         if (t > CHARGE && t <= BEAM_END && t % 5 == 0) {
             Terrain.hurtArea(level, cx(), cy(), cz(), 16 * scale, 300, 10F, 6, 0.8);
         }
         if (crater != null && !crater.done() && t > CHARGE + 2) crater.step(perTick);
         if (wave != null && t > CHARGE && !wave.done()) wave.sweep(waveRadius());
+        // las agujas de obsidiana y cristal crecen cuando el crater ya esta abierto
+        if (spikes != null && crater != null && crater.done()) {
+            if (!spikesStarted) {
+                spikesStarted = true;
+                spikeStart = t;
+            }
+            if (!spikes.done()) spikes.grow(1.0 / 80.0);
+        }
     }
 }

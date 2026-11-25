@@ -82,6 +82,9 @@ public class MeteorFx implements FxEffect {
                         -plan.dirX[i] * HORIZ / f, -HEIGHT / f, -plan.dirZ[i] * HORIZ / f,
                         (float) (plan.rad[i] * 1.3), iy - 1.0, f + 6, r);
             }
+            if (plan.giant(i) && t > ti + 1 && t < ti + 70) {
+                Debris.ripple(level, x, z, (t - ti) * 5.0 * s, 6.0 * s, 20, r);
+            }
             if (t < ts || t > ti) continue;
 
             double tau = (t - ts) / (double) plan.flight[i];

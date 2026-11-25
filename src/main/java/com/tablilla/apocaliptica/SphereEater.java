@@ -13,6 +13,8 @@ public final class SphereEater {
     private final int n;
     private final long[] sorted;
     private int cursor = 0;
+    private int lineY;
+    private boolean lineInit = false;
 
     public SphereEater(ServerLevel level, BlockPos center, int radius) {
         this.level = level;
@@ -56,5 +58,42 @@ public final class SphereEater {
             BlockState st = level.getBlockState(p);
             if (Terrain.breakable(level, p, st)) Terrain.clear(level, p);
         }
+    }
+
+    /** Forra la superficie cortada con magma, obsidiana y piedra negra: queda incandescente (como lo que corta una bola de teletransporte). */
+    public void line(int slicesPerTick) {
+        if (!lineInit) {
+            lineInit = true;
+            lineY = -r - 2;
+        }
+        double in2 = (double) r * r;
+        double out2 = (r + 1.8) * (r + 1.8);
+        BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
+        net.minecraft.util.RandomSource rnd = level.getRandom();
+        for (int k = 0; k < slicesPerTick && lineY <= r + 2; k++) {
+            int dy = lineY++;
+            for (int dx = -r - 2; dx <= r + 2; dx++) {
+                for (int dz = -r - 2; dz <= r + 2; dz++) {
+                    double d2 = dx * dx + dy * dy + dz * dz;
+                    if (d2 <= in2 || d2 > out2) continue;
+                    p.set(center.getX() + dx, center.getY() + dy, center.getZ() + dz);
+                    if (!level.hasChunk(p.getX() >> 4, p.getZ() >> 4)) continue;
+                    BlockState st = level.getBlockState(p);
+                    if (!Terrain.breakable(level, p, st) || !st.getFluidState().isEmpty()) continue;
+                    if (!(level.getBlockState(p.above()).isAir() || level.getBlockState(p.below()).isAir()
+                            || level.getBlockState(p.north()).isAir() || level.getBlockState(p.south()).isAir()
+                            || level.getBlockState(p.east()).isAir() || level.getBlockState(p.west()).isAir())) continue;
+                    float f = rnd.nextFloat();
+                    net.minecraft.world.level.block.Block b = f < 0.55F ? net.minecraft.world.level.block.Blocks.MAGMA_BLOCK
+                            : (f < 0.78F ? net.minecraft.world.level.block.Blocks.OBSIDIAN
+                            : (f < 0.92F ? net.minecraft.world.level.block.Blocks.BLACKSTONE : net.minecraft.world.level.block.Blocks.GLASS));
+                    level.setBlock(p, b.defaultBlockState(), Terrain.FLAGS);
+                }
+            }
+        }
+    }
+
+    public boolean lineDone() {
+        return lineInit && lineY > r + 2;
     }
 }

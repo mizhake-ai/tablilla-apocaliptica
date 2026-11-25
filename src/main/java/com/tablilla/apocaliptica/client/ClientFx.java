@@ -1,5 +1,6 @@
 package com.tablilla.apocaliptica.client;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.tablilla.apocaliptica.FxPacket;
@@ -10,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.FogRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlas;
@@ -53,6 +55,30 @@ public final class ClientFx {
 
     private ClientFx() {}
 
+    private static RenderLevelStageEvent.Stage stageOf(int n) {
+        switch (n) {
+            case 1:
+                return RenderLevelStageEvent.Stage.AFTER_WEATHER;
+            case 2:
+                return RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS;
+            case 3:
+                return RenderLevelStageEvent.Stage.AFTER_ENTITIES;
+            default:
+                return RenderLevelStageEvent.Stage.AFTER_PARTICLES;
+        }
+    }
+
+    private static RenderType glowType() {
+        switch (FxSettings.glowType) {
+            case 1:
+                return RenderType.gui();
+            case 2:
+                return RenderType.debugQuads();
+            default:
+                return RenderType.lightning();
+        }
+    }
+
     public static void handle(FxPacket p) {
         if (p.laser < 0) {
             ACTIVE.clear();
@@ -78,6 +104,14 @@ public final class ClientFx {
                 return new MeteorFx(p.seed, p.scale);
             case MOTHERSHIP:
                 return new MothershipFx();
+            case PLANETKILLER:
+                return new PlanetKillerFx();
+            case NUCLEAR:
+                return new NuclearFx();
+            case SINKHOLE:
+                return new SinkholeFx(p.seed, p.scale);
+            case PAYLOAD:
+                return new PayloadFx();
             default:
                 return null;
         }
@@ -116,7 +150,7 @@ public final class ClientFx {
 
     @SubscribeEvent
     public static void onRender(RenderLevelStageEvent event) {
-        if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
+        if (event.getStage() != stageOf(FxSettings.stage)) return;
         if (ACTIVE.isEmpty() && !Debris.any()) return;
         Minecraft mc = Minecraft.getInstance();
         PoseStack ps = event.getPoseStack();
@@ -124,6 +158,19 @@ public final class ClientFx {
         float pt = event.getPartialTick();
         MultiBufferSource.BufferSource buf = mc.renderBuffers().bufferSource();
 
+        // sin niebla: la niebla de distancia borra los rayos y la nave lejana (se ven como a traves de agua o cristal)
+        float fogStart = RenderSystem.getShaderFogStart();
+        float fogEnd = RenderSystem.getShaderFogEnd();
+        try {
+            if (FxSettings.noFog) FogRenderer.setupNoFog();
+            drawAll(ps, cam, pt, buf, mc);
+        } finally {
+            RenderSystem.setShaderFogStart(fogStart);
+            RenderSystem.setShaderFogEnd(fogEnd);
+        }
+    }
+
+    private static void drawAll(PoseStack ps, Vec3 cam, float pt, MultiBufferSource.BufferSource buf, Minecraft mc) {
         // 1) geometria solida con texturas de bloques (nave, agujero negro)
         if (!hullBroken) {
             try {
@@ -169,7 +216,8 @@ public final class ClientFx {
         buf.endBatch(RenderType.gui());
 
         // 4) luz
-        VertexConsumer glow = buf.getBuffer(RenderType.lightning());
+        RenderType glowRt = glowType();
+        VertexConsumer glow = buf.getBuffer(glowRt);
         for (Active a : ACTIVE) {
             ps.pushPose();
             ps.translate(a.x - cam.x, a.y - cam.y, a.z - cam.z);
@@ -180,7 +228,7 @@ public final class ClientFx {
             a.fx.renderGlow(glow, m, a.t + pt, a.seed, a.scale);
             ps.popPose();
         }
-        buf.endBatch(RenderType.lightning());
+        buf.endBatch(glowRt);
     }
 
     @SubscribeEvent

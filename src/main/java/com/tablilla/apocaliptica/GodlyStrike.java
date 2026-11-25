@@ -20,10 +20,17 @@ public class GodlyStrike extends BaseStrike {
     };
 
     private BowlCrater crater;
+    private BlastWave wave;
     private int perTick = 1;
+    private java.util.List<double[]> lines;
+    private int lineCursor = 0;
+    private final int craterR;
+    private final int waveR;
 
     public GodlyStrike(ServerLevel level, BlockPos center) {
         super(level, center);
+        this.craterR = Math.round(52 * scale);
+        this.waveR = Math.max(40, Math.min(200, Math.round(130 * scale)));
     }
 
     @Override
@@ -39,37 +46,44 @@ public class GodlyStrike extends BaseStrike {
     @Override
     protected void serverTick() {
         if (!StrikeManager.terrainDamage) return;
+        if (t == 1) lines = MagicCircle.blockLines(MagicCircle.RADIUS * scale, seed);
+        // el circulo magico se va dibujando en la tierra con lineas de bloques de oro (y diamante en los cruces)
+        if (lines != null && t >= CHARGE + 3 && lineCursor < lines.size()) {
+            int perTickLines = (int) Math.ceil(lines.size() / 90.0);
+            drawLines(perTickLines);
+        }
         if (t == CHARGE) {
             Terrain.hurtArea(level, cx(), cy(), cz(), 90 * scale, 200, 60F, 0, 3.6);
-            crater = new BowlCrater(level, center, Math.round(52 * scale), Math.round(28 * scale), LINER);
+            Terrain.raiseRim(level, center.getX(), center.getZ(), craterR, 0.14, rnd);
+            crater = new BowlCrater(level, center, craterR, Math.round(28 * scale), LINER);
             perTick = (int) Math.ceil(crater.total() / 110.0);
+            wave = new BlastWave(level, center, waveR, 0.4F, 0.0F).withPush(3.0, waveR * 1.1);
         }
         if (t > CHARGE && t <= BEAM_END && t % 5 == 0) {
             Terrain.hurtArea(level, cx(), cy(), cz(), 14 * scale, 300, 12F, 0, 1.0);
         }
         if (crater != null && !crater.done() && t > CHARGE + 2) crater.step(perTick);
-        if (t == CHARGE + 100) placeJunctions();
+        if (wave != null && t > CHARGE && !wave.done()) {
+            double k = Math.min(1.0, (t - CHARGE) / 70.0);
+            wave.sweep(waveR * (1.0 - (1.0 - k) * (1.0 - k)));
+        }
     }
 
-    /** Bloques de oro (y pocos de diamante) donde se juntan las lineas del circulo magico. */
-    private void placeJunctions() {
+    private void drawLines(int count) {
         BlockState gold = Blocks.GOLD_BLOCK.defaultBlockState();
         BlockState diamond = Blocks.DIAMOND_BLOCK.defaultBlockState();
         BlockPos.MutableBlockPos p = new BlockPos.MutableBlockPos();
-        for (double[] j : MagicCircle.junctions(MagicCircle.RADIUS * scale)) {
-            int x = center.getX() + (int) Math.round(j[0]);
-            int z = center.getZ() + (int) Math.round(j[1]);
-            for (int dx = 0; dx <= 1; dx++) {
-                for (int dz = 0; dz <= 1; dz++) {
-                    int px = x + dx;
-                    int pz = z + dz;
-                    if (!level.hasChunk(px >> 4, pz >> 4)) continue;
-                    int top = Terrain.surfaceTop(level, px, pz);
-                    p.set(px, top, pz);
-                    if (!Terrain.breakable(level, p, level.getBlockState(p))) continue;
-                    level.setBlock(p, (dx == 0 && dz == 0 && j[2] > 0.5) ? diamond : gold, Terrain.FLAGS);
-                }
-            }
+        for (int k = 0; k < count && lineCursor < lines.size(); k++) {
+            double[] l = lines.get(lineCursor++);
+            if (l[0] * l[0] + l[1] * l[1] <= (craterR + 2.0) * (craterR + 2.0)) continue;
+            int x = center.getX() + (int) l[0];
+            int z = center.getZ() + (int) l[1];
+            if (!level.hasChunk(x >> 4, z >> 4)) continue;
+            int top = Terrain.surfaceTop(level, x, z);
+            p.set(x, top, z);
+            BlockState cur = level.getBlockState(p);
+            if (!Terrain.breakable(level, p, cur) || !cur.getFluidState().isEmpty()) continue;
+            level.setBlock(p, l[2] > 0.5 ? diamond : gold, Terrain.FLAGS);
         }
     }
 }

@@ -16,6 +16,11 @@ public final class BlastWave {
     private final RandomSource rnd;
     private final long[] wave;
     private int cursor = 0;
+    private double push = 0.0;
+    private double falloff = 1.0;
+    private double prevRad = 0.0;
+    private int flattenY = Integer.MIN_VALUE;
+    private double flattenFrac = 0.5;
 
     public BlastWave(ServerLevel level, BlockPos center, int radius, float groundChance, float fireChance) {
         this.level = level;
@@ -39,12 +44,30 @@ public final class BlastWave {
         Arrays.sort(wave);
     }
 
+    /** Activa el empuje de la onda: fuerza en el frente y radio al que se vuelve suave. */
+    public BlastWave withPush(double strength, double falloffRadius) {
+        this.push = strength;
+        this.falloff = Math.max(10.0, falloffRadius);
+        return this;
+    }
+
+    /** Las montanas dentro de esta fraccion del radio se derriban hasta la altura dada. */
+    public BlastWave flatten(int maxY, double frac) {
+        this.flattenY = maxY;
+        this.flattenFrac = frac;
+        return this;
+    }
+
     public boolean done() {
         return cursor >= wave.length;
     }
 
     /** Procesa todas las columnas que ya alcanzo la onda (hasta un maximo por tick). */
     public void sweep(double currentRadius) {
+        if (push > 0.0 && currentRadius > prevRad) {
+            Terrain.shockPush(level, center.getX() + 0.5, center.getY(), center.getZ() + 0.5, Math.max(0.0, currentRadius - 10.0), currentRadius, push, falloff);
+        }
+        prevRad = Math.max(prevRad, currentRadius);
         long lim = (long) (currentRadius * currentRadius);
         int done = 0;
         while (cursor < wave.length && (wave[cursor] >>> 32) <= lim && done < 2500) {
@@ -53,7 +76,11 @@ public final class BlastWave {
             int dx = idx / n - radius;
             cursor++;
             done++;
-            Terrain.scorchColumn(level, center.getX() + dx, center.getZ() + dz, groundChance, fireChance, rnd);
+            double f = Math.sqrt((double) dx * dx + (double) dz * dz) / Math.max(1, radius);
+            if (flattenY != Integer.MIN_VALUE && f <= flattenFrac) {
+                Terrain.flattenColumn(level, center.getX() + dx, center.getZ() + dz, flattenY, rnd);
+            }
+            Terrain.blastColumn(level, center.getX() + dx, center.getZ() + dz, f, groundChance, fireChance, rnd);
         }
     }
 }
