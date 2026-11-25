@@ -231,7 +231,7 @@ public class PlanetKillerFx implements FxEffect {
             FxGeo.ring(vc, m, 0, ringY, 0, ringR * 0.55F, ringR * 0.56F, 96, 1.0F, 0.9F, 0.6F, 0.8F * al, 0.8F * al);
             for (int i = 0; i < 48; i++) {
                 float a = i * TAU / 48 + t * 0.004F;
-                FxGeo.flatLine(vc, m, cos(a) * ringR * 0.84F, ringY + 2.0F, sin(a) * ringR * 0.84F, cos(a) * ringR * 0.97F, ringY + 2.0F, sin(a) * ringR * 0.97F,
+                FxGeo.flatLine(vc, m, cos(a) * ringR * 0.84F, ringY + 2.0F, sin(a) * ringR * 0.84F, cos(a) * ringR * 0.97F, sin(a) * ringR * 0.97F,
                         2.0F * q, 1.0F, 0.9F, 0.6F, 0.8F * al);
             }
             FxGeo.sphere(vc, m, 0, ringY, 0, 26.0F * q * charge, 6, 12, 0.8F, 0.95F, 1.0F, 0.6F * al);

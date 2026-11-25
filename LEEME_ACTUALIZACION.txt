@@ -1,4 +1,4 @@
-ACTUALIZACION 0.4.0 - Tablilla Apocaliptica (10 eventos: 9 listos + 1 pendiente)
+ACTUALIZACION 0.4.1 - Tablilla Apocaliptica (corrige el error de compilacion de la 0.4.0)
 
 COMO USARLA (GitHub, navegador):
 1. Descomprime este zip.
@@ -7,7 +7,5 @@ COMO USARLA (GitHub, navegador):
 4. Commit changes. GitHub Actions compila solo.
 5. Actions > ultimo "Compilar mod" > Artifacts > tablilla-apocaliptica-jar.
 
-Este zip trae TODO el proyecto (no solo lo nuevo).
-Si sale error rojo, mandame las lineas que dicen "error:".
-
-PARA PROBAR CON SHADERS (en el juego): /tablillafx info  |  /tablillafx stage 0-3  |  /tablillafx glow 0-2  |  /tablillafx fog 0|1
+Este zip trae TODO el proyecto. Si sale error rojo, mandame las lineas que dicen "error:".
+Para probar shaders en el juego: /tablillafx info | stage 0-3 | glow 0-2 | fog 0|1
